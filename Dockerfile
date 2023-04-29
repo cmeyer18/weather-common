@@ -5,7 +5,7 @@ FROM golang:1.19-alpine
 WORKDIR /app
 
 COPY . .
-RUN go get  -t -v ./...
+RUN go install -t -v ./...
 
 # download Go modules and dependencies
 RUN go mod download
