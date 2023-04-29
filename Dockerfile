@@ -5,7 +5,7 @@ FROM golang:1.19-alpine
 WORKDIR /app
 
 COPY . .
-RUN go install
+RUN go install ./...
 
 # download Go modules and dependencies
 RUN go mod download
@@ -14,4 +14,4 @@ RUN go mod download
 RUN go mod vendor
 
 # compile application
-RUN go build -o /godocker
+RUN go build ./...
