@@ -2,6 +2,7 @@ package custom_mongo
 
 import (
 	"context"
+	"github.com/cmeyer18/weather-common/custom-mongo/collections"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -62,32 +63,34 @@ func (bc *BaseConnection) Connect() error {
 }
 
 // GetCollection gets a collection for the notifier service
-func (bc *BaseConnection) GetCollection(database, collection string) (*mongo.Collection, error) {
-	fields := logrus.Fields{"database": database, "collection": collection}
+func GetCollection[T any](databaseName, collectionName string, connection BaseConnection) (*collections.BaseCollection[T], error) {
+	fields := logrus.Fields{"database": databaseName, "collection": collectionName}
 
 	// Alert if no db found
-	dbNames, err := bc.client.ListDatabaseNames(context.TODO(), bson.M{"name": database})
+	dbFoundList, err := connection.client.ListDatabaseNames(context.TODO(), bson.M{"name": databaseName})
 	if err != nil {
-		bc.Logger.WithError(err).Error("custom-mongo.base_connection.getCollection.ListDatabaseNames.error")
+		connection.Logger.WithError(err).Error("custom-mongo.base_connection.getCollection.ListDatabaseNames.error")
 		return nil, err
 	}
-
-	if len(dbNames) == 0 {
-		bc.Logger.WithFields(fields).Warn("custom-mongo.base_connection.getCollection.ListDatabasesNames db not found")
+	if len(dbFoundList) == 0 {
+		connection.Logger.WithFields(fields).Warn("custom-mongo.base_connection.getCollection.ListDatabasesNames db not found")
 	}
 
-	weatherDB := bc.client.Database(database)
+	database := connection.client.Database(databaseName)
 
 	// Alert if no collection found
-	collectionNames, err := weatherDB.ListCollectionNames(context.TODO(), bson.M{"name": collection})
+	collectionNames, err := database.ListCollectionNames(context.TODO(), bson.M{"name": collectionName})
 	if err != nil {
-		bc.Logger.WithError(err).Error("custom-mongo.base_connection.getCollection.ListCollectionNames.error")
+		connection.Logger.WithError(err).Error("custom-mongo.base_connection.getCollection.ListCollectionNames.error")
 		return nil, err
 	}
 	if len(collectionNames) == 0 {
-		bc.Logger.WithFields(fields).Warn("custom-mongo.base_connection.getCollection.ListCollectionNames collection not found")
+		connection.Logger.WithFields(fields).Warn("custom-mongo.base_connection.getCollection.ListCollectionNames collection not found")
 	}
 
-	subscriberCollection := weatherDB.Collection(collection)
-	return subscriberCollection, nil
+	collection := database.Collection(collectionName)
+
+	baseCollection := collections.NewBaseCollection[T](collection, connection.Logger)
+
+	return &baseCollection, nil
 }
