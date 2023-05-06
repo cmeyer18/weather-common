@@ -6,7 +6,7 @@ import (
 )
 
 type SubscriberCollection struct {
-	BaseCollection[data_structures.Subscriber]
+	custom_mongo.BaseCollection[data_structures.Subscriber]
 }
 
 func NewSubscriberCollectionArgs() custom_mongo.BaseCollectionArgs {

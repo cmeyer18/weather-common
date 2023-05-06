@@ -1,4 +1,4 @@
-package collections
+package custom_mongo
 
 import (
 	"context"

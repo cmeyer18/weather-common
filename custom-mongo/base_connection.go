@@ -2,7 +2,6 @@ package custom_mongo
 
 import (
 	"context"
-	"github.com/cmeyer18/weather-common/custom-mongo/collections"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -55,7 +54,7 @@ func (bc *BaseConnection) Connect() error {
 }
 
 type GetCollectionReturn[T any] struct {
-	collection         *collections.BaseCollection[T]
+	collection         *BaseCollection[T]
 	databaseNotExist   bool
 	collectionNotExist bool
 }
@@ -90,7 +89,7 @@ func GetCollection[T any](args BaseCollectionArgs, connection BaseConnection) (G
 	}
 
 	collection := database.Collection(args.CollectionName)
-	retValue.collection = collections.NewBaseCollection[T](collection)
+	retValue.collection = NewBaseCollection[T](collection)
 
 	return retValue, nil
 }

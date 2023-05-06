@@ -1,13 +1,13 @@
 package collections
 
 import (
-	"github.com/cmeyer18/weather-common/custom-mongo"
+	custom_mongo "github.com/cmeyer18/weather-common/custom-mongo"
 	"github.com/cmeyer18/weather-common/data_structures"
 	"time"
 )
 
 type FeatureCollection struct {
-	BaseCollection[data_structures.Feature]
+	custom_mongo.BaseCollection[data_structures.Feature]
 }
 
 func NewFeatureCollectionArgs() custom_mongo.BaseCollectionArgs {

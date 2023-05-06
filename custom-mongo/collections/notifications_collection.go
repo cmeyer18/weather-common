@@ -8,7 +8,7 @@ import (
 )
 
 type NotificationCollection struct {
-	BaseCollection[data_structures.Notification]
+	custom_mongo.BaseCollection[data_structures.Notification]
 }
 
 func NewNotificationCollectionArgs() custom_mongo.BaseCollectionArgs {
