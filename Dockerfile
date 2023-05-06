@@ -5,10 +5,6 @@ FROM golang:1.19-alpine
 WORKDIR /app
 
 COPY . .
-RUN go install ./...
-
-# download Go modules and dependencies
-RUN go mod download
 
 # download Go vendor
 RUN go mod vendor
