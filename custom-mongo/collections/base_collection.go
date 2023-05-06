@@ -2,7 +2,6 @@ package collections
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -17,11 +16,10 @@ type BaseCollectionInterface[T any] interface {
 
 type BaseCollection[T any] struct {
 	Collection *mongo.Collection
-	logger     *logrus.Logger
 }
 
-func NewBaseCollection[T any](collection *mongo.Collection, logger *logrus.Logger) BaseCollection[T] {
-	return BaseCollection[T]{Collection: collection, logger: logger}
+func NewBaseCollection[T any](collection *mongo.Collection) *BaseCollection[T] {
+	return &BaseCollection[T]{Collection: collection}
 }
 
 func (bc *BaseCollection[T]) Exists(id string) (bool, error) {
@@ -32,7 +30,6 @@ func (bc *BaseCollection[T]) Exists(id string) (bool, error) {
 	if err == mongo.ErrNoDocuments {
 		return false, nil
 	} else if err != nil {
-		bc.logger.WithError(err).Error("custom-mongo.collections.base_collection.Exists.failure error with decoding")
 		return false, err
 	}
 
@@ -48,20 +45,17 @@ func (bc *BaseCollection[T]) Insert(elements []T) error {
 
 	_, err := bc.Collection.InsertMany(context.TODO(), mongoInterface)
 	if err != nil {
-		bc.logger.WithError(err).Error("custom-mongo.collections.base_collection.Insert.Error")
 		return err
 	}
-	bc.logger.Info("custom-mongo.collections.base_collection.Insert.Inserted")
+
 	return nil
 }
 
 func (bc *BaseCollection[T]) Delete(ids []string) error {
 	_, err := bc.Collection.DeleteMany(context.TODO(), bson.M{"id": bson.M{"$in": ids}})
 	if err != nil {
-		bc.logger.WithError(err).Error("custom-mongo.collections.features_collection.Delete.failure")
 		return err
 	}
-	bc.logger.Info("custom-mongo.collections.features_collection.Delete.Deleted")
 	return nil
 }
 
@@ -75,7 +69,6 @@ func (bc *BaseCollection[T]) Get(id string) (T, error) {
 	if err == mongo.ErrNoDocuments {
 		return element, nil
 	} else if err != nil {
-		bc.logger.WithError(err).Error("custom-mongo.collections.base_collection.Exists.failure error with decoding")
 		return element, err
 	}
 
@@ -88,7 +81,6 @@ func (bc *BaseCollection[T]) GetAll() ([]T, error) {
 	// Get all the records and process them into an array
 	results, err := bc.Collection.Find(context.TODO(), bson.M{})
 	if err != nil {
-		bc.logger.WithError(err).Error("custom-mongo.subscribers_collection.FindAll.error")
 		return nil, err
 	}
 
@@ -96,7 +88,6 @@ func (bc *BaseCollection[T]) GetAll() ([]T, error) {
 		var element T
 		err := results.Decode(&element)
 		if err != nil {
-			bc.logger.WithError(err).Error("custom-mongo.subscribers_collection.FindAll.Decode.failure")
 			return nil, err
 		}
 
