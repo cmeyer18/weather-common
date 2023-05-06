@@ -1,17 +1,30 @@
 package collections
 
 import (
-	custom_mongo "github.com/cmeyer18/weather-common/custom-mongo"
+	custommongo "github.com/cmeyer18/weather-common/custom-mongo"
 	"github.com/cmeyer18/weather-common/data_structures"
 	"time"
 )
 
+type featureCollectionI custommongo.BaseCollection[data_structures.Feature]
+
 type FeatureCollection struct {
-	custom_mongo.BaseCollection[data_structures.Feature]
+	featureCollectionI
 }
 
-func NewFeatureCollectionArgs() custom_mongo.BaseCollectionArgs {
-	return custom_mongo.BaseCollectionArgs{DatabaseName: "weather", CollectionName: "features"}
+func NewFeatureCollection(connection custommongo.BaseConnection) (FeatureCollection, bool, bool, error) {
+	collection, dbExist, collectExist, err := custommongo.GetCollection[data_structures.Feature](featureCollectionArgs(), connection)
+	if err != nil {
+		return FeatureCollection{}, false, false, err
+	}
+
+	collectionConv := FeatureCollection{featureCollectionI(collection)}
+
+	return collectionConv, dbExist, collectExist, nil
+}
+
+func featureCollectionArgs() custommongo.BaseCollectionArgs {
+	return custommongo.BaseCollectionArgs{DatabaseName: "weather", CollectionName: "features"}
 }
 
 func (fc *FeatureCollection) GetExpiredFeatures(givenTime time.Time) ([]data_structures.Feature, error) {

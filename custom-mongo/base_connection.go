@@ -2,7 +2,6 @@ package custom_mongo
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -11,12 +10,6 @@ import (
 type BaseCollectionArgs struct {
 	DatabaseName   string
 	CollectionName string
-}
-
-type GetCollectionReturn[T any] struct {
-	collection         *BaseCollection[T]
-	databaseNotExist   bool
-	collectionNotExist bool
 }
 
 // BaseConnection details a connection struct for the main file.
@@ -62,34 +55,4 @@ func (bc *BaseConnection) Connect() error {
 	}
 
 	return nil
-}
-
-// GetCollection gets a collection for the notifier service
-func GetCollection[T any](args BaseCollectionArgs, connection BaseConnection) (GetCollectionReturn[T], error) {
-	retValue := GetCollectionReturn[T]{}
-
-	// Alert if no db found
-	dbFoundList, err := connection.client.ListDatabaseNames(context.TODO(), bson.M{"name": args.DatabaseName})
-	if err != nil {
-		return retValue, err
-	}
-	if len(dbFoundList) == 0 {
-		retValue.databaseNotExist = true
-	}
-
-	database := connection.client.Database(args.DatabaseName)
-
-	// Alert if no collection found
-	collectionNames, err := database.ListCollectionNames(context.TODO(), bson.M{"name": args.CollectionName})
-	if err != nil {
-		return retValue, err
-	}
-	if len(collectionNames) == 0 {
-		retValue.collectionNotExist = true
-	}
-
-	collection := database.Collection(args.CollectionName)
-	retValue.collection = NewBaseCollection[T](collection)
-
-	return retValue, nil
 }
