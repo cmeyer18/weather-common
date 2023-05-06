@@ -48,9 +48,5 @@ type Feature struct {
 }
 
 func (f *Feature) GetListOfZones() []string {
-	var zones []string
-	for _, zone := range f.Properties.Geocode.UGC {
-		zones = append(zones, zone)
-	}
-	return zones
+	return f.Properties.Geocode.UGC
 }
