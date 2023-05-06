@@ -8,6 +8,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+type BaseCollectionArgs struct {
+	DatabaseName   string
+	CollectionName string
+}
+
+type GetCollectionReturn[T any] struct {
+	collection         *BaseCollection[T]
+	databaseNotExist   bool
+	collectionNotExist bool
+}
+
 // BaseConnection details a connection struct for the main file.
 type BaseConnection struct {
 	credentials        options.Credential
@@ -51,17 +62,6 @@ func (bc *BaseConnection) Connect() error {
 	}
 
 	return nil
-}
-
-type GetCollectionReturn[T any] struct {
-	collection         *BaseCollection[T]
-	databaseNotExist   bool
-	collectionNotExist bool
-}
-
-type BaseCollectionArgs struct {
-	DatabaseName   string
-	CollectionName string
 }
 
 // GetCollection gets a collection for the notifier service
