@@ -6,17 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type baseCollectionInterface[T any] interface {
-	Exists(id string) (bool, error)
-	Insert(elements []T) error
-	Delete(ids []string) error
-	Get(id string) (T, error)
-	GetAll() ([]T, error)
-	GetManyWithFilter(bsonFilter bson.M) ([]T, error)
-}
-
 type BaseCollection[T any] struct {
-	baseCollectionInterface[T]
 	collection *mongo.Collection
 }
 

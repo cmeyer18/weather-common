@@ -6,10 +6,8 @@ import (
 	"time"
 )
 
-type featureCollectionI custommongo.BaseCollection[data_structures.Feature]
-
 type FeatureCollection struct {
-	featureCollectionI
+	*custommongo.BaseCollection[data_structures.Feature]
 }
 
 func NewFeatureCollection(connection custommongo.BaseConnection) (FeatureCollection, bool, bool, error) {
@@ -18,7 +16,7 @@ func NewFeatureCollection(connection custommongo.BaseConnection) (FeatureCollect
 		return FeatureCollection{}, false, false, err
 	}
 
-	collectionConv := FeatureCollection{featureCollectionI(collection)}
+	collectionConv := FeatureCollection{&collection}
 
 	return collectionConv, dbExist, collectExist, nil
 }

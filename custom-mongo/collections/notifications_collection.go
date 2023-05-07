@@ -6,10 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type notificationCollectionI custom_mongo.BaseCollection[data_structures.Notification]
-
 type NotificationCollection struct {
-	notificationCollectionI
+	*custom_mongo.BaseCollection[data_structures.Notification]
 }
 
 func notificationCollectionArgs() custom_mongo.BaseCollectionArgs {
@@ -22,8 +20,7 @@ func NewNotificationCollection(connection custom_mongo.BaseConnection) (Notifica
 		return NotificationCollection{}, false, false, err
 	}
 
-	collectionConv := NotificationCollection{notificationCollectionI(collection)}
-
+	collectionConv := NotificationCollection{&collection}
 	return collectionConv, dbExist, collectExist, nil
 }
 

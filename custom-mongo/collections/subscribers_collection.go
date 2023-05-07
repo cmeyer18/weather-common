@@ -5,10 +5,8 @@ import (
 	"github.com/cmeyer18/weather-common/data_structures"
 )
 
-type subscriberCollectionI custom_mongo.BaseCollection[data_structures.Subscriber]
-
 type SubscriberCollection struct {
-	subscriberCollectionI
+	*custom_mongo.BaseCollection[data_structures.Subscriber]
 }
 
 func subscriberCollectionArgs() custom_mongo.BaseCollectionArgs {
@@ -21,7 +19,6 @@ func NewSubscriberCollection(connection custom_mongo.BaseConnection) (Subscriber
 		return SubscriberCollection{}, false, false, err
 	}
 
-	collectionConv := SubscriberCollection{subscriberCollectionI(collection)}
-
+	collectionConv := SubscriberCollection{&collection}
 	return collectionConv, dbExist, collectExist, nil
 }
