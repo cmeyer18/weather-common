@@ -3,7 +3,7 @@ package data_structures
 import "time"
 
 type Notification struct {
-	NotificationID   string    `bson:"notificationid"`
+	ID               string    `bson:"id"`
 	UserID           string    `bson:"userid"`
 	ZoneCode         string    `bson:"zonecode"`
 	CountyCode       string    `bson:"countycode"`

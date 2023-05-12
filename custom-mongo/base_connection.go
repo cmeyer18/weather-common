@@ -19,8 +19,9 @@ type BaseConnection struct {
 	client             *mongo.Client
 }
 
-func NewConnection(credentials options.Credential, url string, client *mongo.Client) BaseConnection {
-	return BaseConnection{credentials: credentials, mongoConnectionURL: url, client: client}
+// NewConnection returns a BaseConnection for all mongodb transactions
+func NewConnection(credentials options.Credential, url string) BaseConnection {
+	return BaseConnection{credentials: credentials, mongoConnectionURL: url}
 }
 
 // Ping tries to connect the server.
@@ -38,7 +39,11 @@ func (bc *BaseConnection) Disconnect() error {
 
 // Connect sets up a connection to a mongoDB server.
 func (bc *BaseConnection) Connect() error {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://"+bc.mongoConnectionURL).SetAuth(bc.credentials))
+	connectionOptions := options.Client()
+	connectionOptions.ApplyURI("mongodb://" + bc.mongoConnectionURL)
+	connectionOptions.SetAuth(bc.credentials)
+
+	client, err := mongo.Connect(context.TODO(), connectionOptions)
 	if err != nil {
 		return err
 	}

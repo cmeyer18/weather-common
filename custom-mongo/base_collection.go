@@ -2,6 +2,7 @@ package custom_mongo
 
 import (
 	"context"
+	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -14,8 +15,8 @@ func NewBaseCollection[T any](collection *mongo.Collection) BaseCollection[T] {
 	return BaseCollection[T]{collection: collection}
 }
 
-func (bc *BaseCollection[T]) Exists(id string) (bool, error) {
-	result := bc.collection.FindOne(context.TODO(), bson.M{"id": id})
+func (bc *BaseCollection[T]) Exists(field string, item interface{}) (bool, error) {
+	result := bc.collection.FindOne(context.TODO(), bson.M{field: item})
 
 	var element T
 	err := result.Decode(&element)
@@ -43,28 +44,42 @@ func (bc *BaseCollection[T]) Insert(elements []T) error {
 	return nil
 }
 
-func (bc *BaseCollection[T]) Delete(ids []string) error {
-	_, err := bc.collection.DeleteMany(context.TODO(), bson.M{"id": bson.M{"$in": ids}})
+func (bc *BaseCollection[T]) Delete(field string, items []interface{}) error {
+	_, err := bc.collection.DeleteMany(context.TODO(), bson.M{field: bson.M{"$in": items}})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (bc *BaseCollection[T]) Get(id string) (T, error) {
-	var element T
+func (bc *BaseCollection[T]) Get(field string, item interface{}) ([]T, error) {
+	var elements []T
+	var results *mongo.Cursor
 
-	// Get all the records and process them into an array
-	result := bc.collection.FindOne(context.TODO(), bson.M{"id": id})
-
-	err := result.Decode(&element)
-	if err == mongo.ErrNoDocuments {
-		return element, nil
-	} else if err != nil {
-		return element, err
+	if field == "" {
+		return nil, errors.New("field should not be empty")
+	}
+	if item == nil {
+		return nil, errors.New("item should not be empty")
 	}
 
-	return element, nil
+	// Get all the records and process them into an array
+	results, err := bc.collection.Find(context.TODO(), bson.M{field: item})
+	if err != nil {
+		return nil, err
+	}
+
+	for results.Next(context.TODO()) {
+		var element T
+		err := results.Decode(&element)
+		if err != nil {
+			return nil, err
+		}
+
+		elements = append(elements, element)
+	}
+
+	return elements, nil
 }
 
 func (bc *BaseCollection[T]) GetManyWithFilter(bsonFilter bson.M) ([]T, error) {
