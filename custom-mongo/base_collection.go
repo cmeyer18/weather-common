@@ -52,19 +52,19 @@ func (bc *BaseCollection[T]) Delete(field string, items []interface{}) error {
 	return nil
 }
 
-func (bc *BaseCollection[T]) Get(field string, item interface{}) ([]T, error) {
+func (bc *BaseCollection[T]) Get(field string, items []interface{}) ([]T, error) {
 	var elements []T
 	var results *mongo.Cursor
 
 	if field == "" {
 		return nil, errors.New("field should not be empty")
 	}
-	if item == nil {
+	if items == nil || len(items) == 0 {
 		return nil, errors.New("item should not be empty")
 	}
 
 	// Get all the records and process them into an array
-	results, err := bc.collection.Find(context.TODO(), bson.M{field: item})
+	results, err := bc.collection.Find(context.TODO(), bson.M{field: bson.M{"$in": items}})
 	if err != nil {
 		return nil, err
 	}
