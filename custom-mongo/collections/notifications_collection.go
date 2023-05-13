@@ -28,5 +28,5 @@ func (nc *NotificationCollection) GetFilterOnCountyOrZone(zonesList []string) ([
 	filterZone := bson.M{"zonecode": bson.M{"$in": zonesList}}
 	filterCounty := bson.M{"countycode": bson.M{"$in": zonesList}}
 	// Get all the records and process them into an array
-	return nc.GetManyWithFilter(bson.M{"$or": []interface{}{filterCounty, filterZone}})
+	return nc.Get(bson.M{"$or": []interface{}{filterCounty, filterZone}})
 }

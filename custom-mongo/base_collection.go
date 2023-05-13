@@ -2,10 +2,8 @@ package custom_mongo
 
 import (
 	"context"
-	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"reflect"
 )
 
 type BaseCollection[T any] struct {
@@ -16,33 +14,10 @@ func NewBaseCollection[T any](collection *mongo.Collection) BaseCollection[T] {
 	return BaseCollection[T]{collection: collection}
 }
 
-func (bc *BaseCollection[T]) getBSONType(fieldName string) string {
-	idField, ok := reflect.TypeOf((*T)(nil)).Elem().FieldByName(fieldName) // not json:name
-	if !ok {
-		return ""
-	}
-
-	idBsonTag := idField.Tag.Get("bson")
-	if idBsonTag != "" {
-		return ""
-	}
-
-	return idBsonTag
-}
-
-func (bc *BaseCollection[T]) Exists(field string, item interface{}) (bool, error) {
-	fieldBsonTag := bc.getBSONType(field)
-	if fieldBsonTag == "" {
-		return false, errors.New("bson type empty on field")
-	}
-
-	result := bc.collection.FindOne(context.TODO(), bson.M{fieldBsonTag: item})
-
-	if item == nil {
-		return false, errors.New("item is null")
-	}
-
+func (bc *BaseCollection[T]) Exists(bsonFilter bson.M) (bool, error) {
 	var element T
+
+	result := bc.collection.FindOne(context.TODO(), bsonFilter)
 	err := result.Decode(&element)
 	if err == mongo.ErrNoDocuments {
 		return false, nil
@@ -68,56 +43,15 @@ func (bc *BaseCollection[T]) Insert(elements []T) error {
 	return nil
 }
 
-func (bc *BaseCollection[T]) Delete(field string, items []interface{}) error {
-	fieldBsonTag := bc.getBSONType(field)
-	if fieldBsonTag == "" {
-		return errors.New("bson type empty on field")
-	}
-
-	if items == nil || len(items) == 0 {
-		return errors.New("items is null")
-	}
-
-	_, err := bc.collection.DeleteMany(context.TODO(), bson.M{fieldBsonTag: bson.M{"$in": items}})
+func (bc *BaseCollection[T]) Delete(bsonFilter bson.M) error {
+	_, err := bc.collection.DeleteMany(context.TODO(), bsonFilter)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (bc *BaseCollection[T]) Get(field string, items []interface{}) ([]T, error) {
-	var elements []T
-	var results *mongo.Cursor
-
-	fieldBsonTag := bc.getBSONType(field)
-	if fieldBsonTag == "" {
-		return nil, errors.New("bson type empty on field")
-	}
-
-	if items == nil || len(items) == 0 {
-		return nil, errors.New("item should not be empty")
-	}
-
-	// Get all the records and process them into an array
-	results, err := bc.collection.Find(context.TODO(), bson.M{fieldBsonTag: bson.M{"$in": items}})
-	if err != nil {
-		return nil, err
-	}
-
-	for results.Next(context.TODO()) {
-		var element T
-		err := results.Decode(&element)
-		if err != nil {
-			return nil, err
-		}
-
-		elements = append(elements, element)
-	}
-
-	return elements, nil
-}
-
-func (bc *BaseCollection[T]) GetManyWithFilter(bsonFilter bson.M) ([]T, error) {
+func (bc *BaseCollection[T]) Get(bsonFilter bson.M) ([]T, error) {
 	var elements []T
 
 	// Get all the records and process them into an array
