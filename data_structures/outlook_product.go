@@ -13,22 +13,24 @@ type Geometry struct {
 	Polygons    []PolygonShape  `json:"polygons,omitempty"`
 }
 
+type SPCFeature struct {
+	Type       string   `json:"type"`
+	Geometry   Geometry `json:"geometry"`
+	Properties struct {
+		Dn     int    `json:"DN"`
+		Valid  string `json:"VALID"`
+		Expire string `json:"EXPIRE"`
+		Issue  string `json:"ISSUE"`
+		Label  string `json:"LABEL"`
+		Label2 string `json:"LABEL2"`
+		Stroke string `json:"stroke"`
+		Fill   string `json:"fill"`
+	} `json:"properties"`
+}
+
 type OutlookProduct struct {
-	Type     string `json:"type"`
-	Features []struct {
-		Type       string   `json:"type"`
-		Geometry   Geometry `json:"geometry"`
-		Properties struct {
-			Dn     int    `json:"DN"`
-			Valid  string `json:"VALID"`
-			Expire string `json:"EXPIRE"`
-			Issue  string `json:"ISSUE"`
-			Label  string `json:"LABEL"`
-			Label2 string `json:"LABEL2"`
-			Stroke string `json:"stroke"`
-			Fill   string `json:"fill"`
-		} `json:"properties"`
-	} `json:"features"`
+	Type       string       `json:"type"`
+	SPCFeature []SPCFeature `json:"features"`
 }
 
 type PolygonShape struct {
