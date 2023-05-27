@@ -2,7 +2,7 @@ package data_structures
 
 import "time"
 
-type Notification struct {
+type UserNotificationSubscriber struct {
 	ID               string    `bson:"id"`
 	UserID           string    `bson:"userid"`
 	ZoneCode         string    `bson:"zonecode"`
