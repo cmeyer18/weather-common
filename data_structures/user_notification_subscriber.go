@@ -8,7 +8,7 @@ type UserNotificationSubscriber struct {
 	ZoneCode         string    `bson:"zonecode"`
 	CountyCode       string    `bson:"countycode"`
 	CreationTime     time.Time `bson:"creationtime"`
-	Lat              string    `bson:"lat"`
-	Lng              string    `bson:"lng"`
+	Lat              float64   `bson:"lat"`
+	Lng              float64   `bson:"lng"`
 	FormattedAddress string    `bson:"formattedaddress"`
 }
