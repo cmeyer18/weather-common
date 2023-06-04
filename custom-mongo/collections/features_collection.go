@@ -37,29 +37,28 @@ func (fc *FeatureCollection) GetExpiredFeatures(givenTime time.Time) ([]data_str
 	for _, feature := range features {
 		var definedTime time.Time
 
-		// If there is an end time, start by using this time.
-		if feature.Properties.Ends != "" {
-			endingTime, err := time.Parse(time.RFC3339, feature.Properties.Ends)
-			if err != nil {
-				return nil, err
-			}
-			definedTime = endingTime
-		}
-
 		// If there is an expired time, lets process it as well.
 		if feature.Properties.Expires != "" {
 			expiredTime, err := time.Parse(time.RFC3339, feature.Properties.Expires)
 			if err != nil {
 				return nil, err
 			}
+			definedTime = expiredTime
+		}
+
+		// If there is an end time, start by using this time.
+		if feature.Properties.Ends != "" {
+			endingTime, err := time.Parse(time.RFC3339, feature.Properties.Ends)
+			if err != nil {
+				return nil, err
+			}
 			if definedTime.IsZero() {
-				definedTime = expiredTime
+				definedTime = endingTime
 			} else {
-				if expiredTime.After(definedTime) {
-					definedTime = expiredTime
+				if endingTime.After(definedTime) {
+					definedTime = endingTime
 				}
 			}
-
 		}
 
 		// Delete the alert if it is before now
