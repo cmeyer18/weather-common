@@ -2,7 +2,7 @@ package data_structures
 
 import "time"
 
-type Feature struct {
+type Alert struct {
 	ID         string      `json:"id" bson:"id"`
 	Type       string      `json:"type" bson:"type"`
 	Geometry   interface{} `json:"geometry" bson:"geometry"`
@@ -47,6 +47,6 @@ type Feature struct {
 	} `json:"properties" bson:"properties"`
 }
 
-func (f *Feature) GetListOfZones() []string {
-	return f.Properties.Geocode.UGC
+func (a *Alert) GetListOfZones() []string {
+	return a.Properties.Geocode.UGC
 }
