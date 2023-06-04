@@ -25,7 +25,7 @@ func alertCollectionArgs() custommongo.BaseCollectionArgs {
 	return custommongo.BaseCollectionArgs{DatabaseName: "weather", CollectionName: "alerts"}
 }
 
-func (ac *AlertCollection) GetExpiredFeatures(givenTime time.Time) ([]data_structures.Alert, error) {
+func (ac *AlertCollection) GetExpiredAlerts(givenTime time.Time) ([]data_structures.Alert, error) {
 	var expiredAlerts []data_structures.Alert
 
 	// Get all records, delete the ones where the time has expired
@@ -37,7 +37,6 @@ func (ac *AlertCollection) GetExpiredFeatures(givenTime time.Time) ([]data_struc
 	for _, alert := range alerts {
 		var definedTime time.Time
 
-		// If there is an expired time, lets process it as well.
 		if alert.Properties.Expires != "" {
 			expiredTime, err := time.Parse(time.RFC3339, alert.Properties.Expires)
 			if err != nil {
@@ -46,7 +45,6 @@ func (ac *AlertCollection) GetExpiredFeatures(givenTime time.Time) ([]data_struc
 			definedTime = expiredTime
 		}
 
-		// If there is an end time, start by using this time.
 		if alert.Properties.Ends != "" {
 			endingTime, err := time.Parse(time.RFC3339, alert.Properties.Ends)
 			if err != nil {
@@ -55,7 +53,7 @@ func (ac *AlertCollection) GetExpiredFeatures(givenTime time.Time) ([]data_struc
 			if definedTime.IsZero() {
 				definedTime = endingTime
 			} else {
-				if endingTime.After(definedTime) {
+				if definedTime.Before(endingTime) {
 					definedTime = endingTime
 				}
 			}
