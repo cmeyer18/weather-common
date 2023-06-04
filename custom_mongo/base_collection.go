@@ -94,34 +94,3 @@ func (bc *BaseCollection[T]) GetAll() ([]T, error) {
 
 	return elements, nil
 }
-
-// GetCollection gets a collection for the notifier service
-func GetCollection[T any](args BaseCollectionArgs, connection BaseConnection) (BaseCollection[T], bool, bool, error) {
-	databaseFound := true
-	collectionFound := true
-
-	// Alert if no db found
-	dbFoundList, err := connection.client.ListDatabaseNames(context.TODO(), bson.M{"name": args.DatabaseName})
-	if err != nil {
-		return BaseCollection[T]{}, false, false, err
-	}
-	if len(dbFoundList) == 0 {
-		databaseFound = false
-	}
-
-	database := connection.client.Database(args.DatabaseName)
-
-	// Alert if no collection found
-	collectionNames, err := database.ListCollectionNames(context.TODO(), bson.M{"name": args.CollectionName})
-	if err != nil {
-		return BaseCollection[T]{}, false, false, err
-	}
-	if len(collectionNames) == 0 {
-		collectionFound = true
-	}
-
-	collection := database.Collection(args.CollectionName)
-	baseCollection := NewBaseCollection[T](collection)
-
-	return baseCollection, databaseFound, collectionFound, nil
-}

@@ -1,17 +1,17 @@
 package collections
 
 import (
-	custommongo "github.com/cmeyer18/weather-common/custom-mongo"
+	"github.com/cmeyer18/weather-common/custom_mongo"
 	"github.com/cmeyer18/weather-common/data_structures"
 	"time"
 )
 
 type AlertCollection struct {
-	*custommongo.BaseCollection[data_structures.Alert]
+	*custom_mongo.BaseCollection[data_structures.Alert]
 }
 
-func NewAlertCollection(connection custommongo.BaseConnection) (AlertCollection, bool, bool, error) {
-	collection, dbExist, collectExist, err := custommongo.GetCollection[data_structures.Alert](alertCollectionArgs(), connection)
+func NewAlertCollection(connection custom_mongo.BaseConnection) (AlertCollection, bool, bool, error) {
+	collection, dbExist, collectExist, err := custom_mongo.GetCollection[data_structures.Alert](alertCollectionArgs(), connection)
 	if err != nil {
 		return AlertCollection{}, false, false, err
 	}
@@ -21,8 +21,8 @@ func NewAlertCollection(connection custommongo.BaseConnection) (AlertCollection,
 	return collectionConv, dbExist, collectExist, nil
 }
 
-func alertCollectionArgs() custommongo.BaseCollectionArgs {
-	return custommongo.BaseCollectionArgs{DatabaseName: "weather", CollectionName: "alerts"}
+func alertCollectionArgs() custom_mongo.BaseCollectionArgs {
+	return custom_mongo.BaseCollectionArgs{DatabaseName: "weather", CollectionName: "alert"}
 }
 
 func (ac *AlertCollection) GetExpiredAlerts(givenTime time.Time) ([]data_structures.Alert, error) {

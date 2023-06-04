@@ -1,5 +1,12 @@
 package data_structures
 
+/*
+	Copyright (c) 2013 Kelly Dunn
+	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 import "math"
 
 type PolygonShape struct {
@@ -38,24 +45,20 @@ func (p *PolygonShape) Contains(point Point) bool {
 }
 
 func (p *PolygonShape) intersectsWithRaycast(point Point, start Point, end Point) bool {
-	// Always ensure that the the first point
-	// has a y coordinate that is less than the second point
+	// Always ensure that the first point has a y coordinate that is less than the second point
 	if start.Longitude > end.Longitude {
-
 		// Switch the points if otherwise.
-		start, end = end, start
-
+		start = end
+		end = start
 	}
 
-	// Move the point's y coordinate
-	// outside of the bounds of the testing region
-	// so we can start drawing a ray
+	// Move the point's y coordinate outside the bounds of the testing region so we can start drawing a ray
 	for point.Longitude == start.Longitude || point.Longitude == end.Longitude {
 		newLng := math.Nextafter(point.Longitude, math.Inf(1))
 		point = Point{point.Latitude, newLng}
 	}
 
-	// If we are outside of the polygon, indicate so.
+	// If we are outside the polygon, indicate so.
 	if point.Longitude < start.Longitude || point.Longitude > end.Longitude {
 		return false
 	}

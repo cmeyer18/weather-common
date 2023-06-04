@@ -2,6 +2,7 @@ package custom_mongo
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -60,4 +61,35 @@ func (bc *BaseConnection) Connect() error {
 	}
 
 	return nil
+}
+
+// GetCollection gets a collection for the notifier service
+func GetCollection[T any](args BaseCollectionArgs, connection BaseConnection) (BaseCollection[T], bool, bool, error) {
+	databaseFound := true
+	collectionFound := true
+
+	// Alert if no db found
+	dbFoundList, err := connection.client.ListDatabaseNames(context.TODO(), bson.M{"name": args.DatabaseName})
+	if err != nil {
+		return BaseCollection[T]{}, false, false, err
+	}
+	if len(dbFoundList) == 0 {
+		databaseFound = false
+	}
+
+	database := connection.client.Database(args.DatabaseName)
+
+	// Alert if no collection found
+	collectionNames, err := database.ListCollectionNames(context.TODO(), bson.M{"name": args.CollectionName})
+	if err != nil {
+		return BaseCollection[T]{}, false, false, err
+	}
+	if len(collectionNames) == 0 {
+		collectionFound = true
+	}
+
+	collection := database.Collection(args.CollectionName)
+	baseCollection := NewBaseCollection[T](collection)
+
+	return baseCollection, databaseFound, collectionFound, nil
 }

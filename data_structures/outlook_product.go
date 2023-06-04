@@ -1,6 +1,6 @@
 package data_structures
 
-type SPCOutlookProduct struct {
+type SPCOutlook struct {
 	Type     string       `json:"type"`
 	Day      string       `json:"day"`
 	Features []SPCFeature `json:"features"`
