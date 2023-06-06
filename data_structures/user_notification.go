@@ -11,4 +11,5 @@ type UserNotification struct {
 	Lat              float64   `bson:"lat"`
 	Lng              float64   `bson:"lng"`
 	FormattedAddress string    `bson:"formattedaddress"`
+	FCMKey           string    `bson:"fcmkey"`
 }
