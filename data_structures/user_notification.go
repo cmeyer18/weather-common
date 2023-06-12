@@ -3,14 +3,14 @@ package data_structures
 import "time"
 
 type UserNotification struct {
-	ID               string    `bson:"id"`
-	UserID           string    `bson:"userid"`
-	ZoneCode         string    `bson:"zonecode"`
-	CountyCode       string    `bson:"countycode"`
-	CreationTime     time.Time `bson:"creationtime"`
-	Lat              float64   `bson:"lat"`
-	Lng              float64   `bson:"lng"`
-	FormattedAddress string    `bson:"formattedaddress"`
-	APNKey           string    `bson:"apnKey"`
-	LocationName     string    `bson:"locationName"`
+	ID               string    `json:"id" bson:"id"`
+	UserID           string    `json:"userid" bson:"userid"`
+	ZoneCode         string    `json:"zonecode" bson:"zonecode"`
+	CountyCode       string    `json:"countycode" bson:"countycode"`
+	CreationTime     time.Time `json:"creationtime" bson:"creationtime"`
+	Lat              float64   `json:"lat" bson:"lat"`
+	Lng              float64   `json:"lng" bson:"lng"`
+	FormattedAddress string    `json:"formattedaddress" bson:"formattedaddress"`
+	APNKey           string    `json:"apnKey" bson:"apnKey"`
+	LocationName     string    `json:"locationName" bson:"locationName"`
 }
