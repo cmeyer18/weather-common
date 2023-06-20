@@ -13,4 +13,6 @@ type UserNotification struct {
 	FormattedAddress string    `json:"formattedaddress" bson:"formattedaddress"`
 	APNKey           string    `json:"apnKey" bson:"apnKey"`
 	LocationName     string    `json:"locationName" bson:"locationName"`
+	SPCOptions       []string  `json:"spcOptions" bson:"spcOptions"`
+	AlertOptions     []string  `json:"alertOptions" bson:"alertOptions"`
 }
