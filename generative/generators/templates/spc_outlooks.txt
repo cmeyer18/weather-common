@@ -1,0 +1,21 @@
+Day 1 Categorical
+Day 1 Tornado
+Day 1 Wind
+Day 1 Hail
+Day 1 Significant Tornado
+Day 1 Significant Wind
+Day 1 Significant Hail
+Day 2 Categorical
+Day 2 Tornado
+Day 2 Wind
+Day 2 Hail
+Day 2 Significant Tornado
+Day 2 Significant Wind
+Day 2 Significant Hail
+Day 3 Categorical
+Day 3 Probabilistic
+Day 4 Probabilistic
+Day 5 Probabilistic
+Day 6 Probabilistic
+Day 7 Probabilistic
+Day 8 Probabilistic
