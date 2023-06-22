@@ -1,9 +1,14 @@
 package data_structures
 
+import "time"
+
 type SPCOutlook struct {
-	Type     string       `json:"type"`
-	Day      string       `json:"day"`
-	Features []SPCFeature `json:"features"`
+	Type string `json:"type"`
+	// Deprecated: Use OutlookProduct instead
+	Day            string       `json:"day,omitempty"`
+	OutlookProduct string       `json:"outlookProduct,omitempty"`
+	IssuedTime     time.Time    `json:"issuedTime,omitempty"`
+	Features       []SPCFeature `json:"features"`
 }
 
 type SPCFeature struct {
