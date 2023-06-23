@@ -1,6 +1,9 @@
 package data_structures
 
-import "time"
+import (
+	"github.com/cmeyer18/weather-common/data_structures/geojson"
+	"time"
+)
 
 type SPCOutlook struct {
 	Type string `json:"type"`
@@ -18,9 +21,9 @@ type SPCFeature struct {
 }
 
 type SPCFeatureGeometry struct {
-	Type        string          `json:"type"`
-	Coordinates [][][][]float64 `json:"coordinates"`
-	Polygons    []PolygonShape  `json:"polygons,omitempty"`
+	Type        string            `json:"type"`
+	Coordinates [][][][]float64   `json:"coordinates"`
+	Polygons    []geojson.Polygon `json:"polygons,omitempty"`
 }
 
 type SPCFeatureProperties struct {

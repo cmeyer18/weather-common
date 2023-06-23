@@ -1,4 +1,4 @@
-package data_structures
+package geojson
 
 /*
 	Copyright (c) 2013 Kelly Dunn
@@ -7,25 +7,54 @@ package data_structures
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import "math"
+import (
+	"errors"
+	"fmt"
+	"math"
+)
 
-type PolygonShape struct {
-	Points []Point `json:"points,omitempty"`
+type Polygon struct {
+	Points []*Point `json:"points,omitempty"`
 }
 
-func NewPolygonShape(points []Point) *PolygonShape {
-	return &PolygonShape{Points: points}
+func parsePolygon(polygon interface{}) (*Polygon, error) {
+	rawPolygon, ok := polygon.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("not a valid polygon, got %v", rawPolygon)
+	}
+
+	if len(rawPolygon) == 0 {
+		return nil, errors.New("polygon contains no points")
+	}
+
+	var points []*Point
+	for _, point := range rawPolygon {
+		parsedPoint, err := parsePoint(point)
+		if err != nil {
+			return nil, err
+		}
+		points = append(points, parsedPoint)
+	}
+
+	p := Polygon{}
+	p.Points = points
+
+	return &p, nil
 }
 
-func (p *PolygonShape) Add(point Point) {
+func NewPolygonShape(points []*Point) *Polygon {
+	return &Polygon{Points: points}
+}
+
+func (p *Polygon) Add(point *Point) {
 	p.Points = append(p.Points, point)
 }
 
-func (p *PolygonShape) IsClosed() bool {
+func (p *Polygon) IsClosed() bool {
 	return len(p.Points) >= 3
 }
 
-func (p *PolygonShape) Contains(point Point) bool {
+func (p *Polygon) Contains(point *Point) bool {
 	if !p.IsClosed() {
 		return false
 	}
@@ -44,7 +73,7 @@ func (p *PolygonShape) Contains(point Point) bool {
 	return contains
 }
 
-func (p *PolygonShape) intersectsWithRaycast(point Point, start Point, end Point) bool {
+func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
 	// Always ensure that the first point has a y coordinate that is less than the second point
 	if start.Longitude > end.Longitude {
 		// Switch the points if otherwise.
@@ -55,7 +84,7 @@ func (p *PolygonShape) intersectsWithRaycast(point Point, start Point, end Point
 	// Move the point's y coordinate outside the bounds of the testing region so we can start drawing a ray
 	for point.Longitude == start.Longitude || point.Longitude == end.Longitude {
 		newLng := math.Nextafter(point.Longitude, math.Inf(1))
-		point = Point{point.Latitude, newLng}
+		point = &Point{point.Latitude, newLng}
 	}
 
 	// If we are outside the polygon, indicate so.
