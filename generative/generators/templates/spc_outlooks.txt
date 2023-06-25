@@ -14,6 +14,7 @@ Day 2 Significant Wind
 Day 2 Significant Hail
 Day 3 Categorical
 Day 3 Probabilistic
+Day 3 Significant Probabilistic
 Day 4 Probabilistic
 Day 5 Probabilistic
 Day 6 Probabilistic

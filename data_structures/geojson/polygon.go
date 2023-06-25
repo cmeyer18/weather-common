@@ -1,4 +1,4 @@
-package data_structures
+package geojson
 
 /*
 	Copyright (c) 2013 Kelly Dunn
@@ -7,36 +7,66 @@ package data_structures
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import "math"
+import (
+	"errors"
+	"fmt"
+	"math"
+)
 
-type PolygonShape struct {
-	Points []Point `json:"points,omitempty"`
+type Polygon struct {
+	OuterPath  *MultiPoint   `json:"outerPath" bson:"outerPath"`
+	InnerPaths []*MultiPoint `json:"innerPaths,omitempty" bson:"innerPaths"`
 }
 
-func NewPolygonShape(points []Point) *PolygonShape {
-	return &PolygonShape{Points: points}
-}
-
-func (p *PolygonShape) Add(point Point) {
-	p.Points = append(p.Points, point)
-}
-
-func (p *PolygonShape) IsClosed() bool {
-	return len(p.Points) >= 3
-}
-
-func (p *PolygonShape) Contains(point Point) bool {
-	if !p.IsClosed() {
-		return false
+func parsePolygon(polygon interface{}) (*Polygon, error) {
+	rawMultiPoints, ok := polygon.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("not a valid MultiPoint, got %v", rawMultiPoints)
 	}
 
-	start := len(p.Points) - 1
+	if len(rawMultiPoints) == 0 {
+		return nil, errors.New("MultiPoint contains no Points ")
+	}
+
+	var outerPath *MultiPoint
+	var innerPaths []*MultiPoint
+	for i, point := range rawMultiPoints {
+		parsedMultiPoint, err := parseMultiPoint(point)
+		if err != nil {
+			return nil, err
+		}
+
+		if i == 0 {
+			outerPath = parsedMultiPoint
+		} else {
+			innerPaths = append(innerPaths, parsedMultiPoint)
+		}
+	}
+
+	p := Polygon{
+		OuterPath:  outerPath,
+		InnerPaths: innerPaths,
+	}
+
+	return &p, nil
+}
+
+func NewPolygonShape(outerPath *MultiPoint, innerPaths []*MultiPoint) *Polygon {
+	return &Polygon{OuterPath: outerPath, InnerPaths: innerPaths}
+}
+
+func (p *Polygon) ContainsPoint(point *Point) bool {
+	return p.containedInOuterPath(point) && !p.containedInInnerPaths(point)
+}
+
+func (p *Polygon) contains(point *Point, multiPoint *MultiPoint) bool {
+	start := len(multiPoint.Points) - 1
 	end := 0
 
-	contains := p.intersectsWithRaycast(point, p.Points[start], p.Points[end])
+	contains := p.intersectsWithRaycast(point, multiPoint.Points[start], multiPoint.Points[end])
 
-	for i := 1; i < len(p.Points); i++ {
-		if p.intersectsWithRaycast(point, p.Points[i-1], p.Points[i]) {
+	for i := 1; i < len(multiPoint.Points); i++ {
+		if p.intersectsWithRaycast(point, multiPoint.Points[i-1], multiPoint.Points[i]) {
 			contains = !contains
 		}
 	}
@@ -44,7 +74,20 @@ func (p *PolygonShape) Contains(point Point) bool {
 	return contains
 }
 
-func (p *PolygonShape) intersectsWithRaycast(point Point, start Point, end Point) bool {
+func (p *Polygon) containedInInnerPaths(point *Point) bool {
+	for _, interPath := range p.InnerPaths {
+		if p.contains(point, interPath) {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Polygon) containedInOuterPath(point *Point) bool {
+	return p.contains(point, p.OuterPath)
+}
+
+func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
 	// Always ensure that the first point has a y coordinate that is less than the second point
 	if start.Longitude > end.Longitude {
 		// Switch the points if otherwise.
@@ -55,7 +98,7 @@ func (p *PolygonShape) intersectsWithRaycast(point Point, start Point, end Point
 	// Move the point's y coordinate outside the bounds of the testing region so we can start drawing a ray
 	for point.Longitude == start.Longitude || point.Longitude == end.Longitude {
 		newLng := math.Nextafter(point.Longitude, math.Inf(1))
-		point = Point{point.Latitude, newLng}
+		point = &Point{point.Latitude, newLng}
 	}
 
 	// If we are outside the polygon, indicate so.
