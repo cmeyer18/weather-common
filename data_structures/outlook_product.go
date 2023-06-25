@@ -66,12 +66,12 @@ func ParseSPCOutlook(data []byte, outlookType golang.SPCOutlookType) (*SPCOutloo
 			return nil, err
 		}
 
-		validTime, err := time.Parse("200601021504", feature.Properties.Issue)
+		validTime, err := time.Parse("200601021504", feature.Properties.Valid)
 		if err != nil {
 			return nil, err
 		}
 
-		expireTime, err := time.Parse("200601021504", feature.Properties.Issue)
+		expireTime, err := time.Parse("200601021504", feature.Properties.Expire)
 		if err != nil {
 			return nil, err
 		}
