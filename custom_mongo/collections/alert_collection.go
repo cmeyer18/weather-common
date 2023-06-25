@@ -35,32 +35,13 @@ func (ac *AlertCollection) GetExpiredAlerts(givenTime time.Time) ([]data_structu
 	}
 
 	for _, alert := range alerts {
-		var definedTime time.Time
-
-		if alert.Properties.Expires != "" {
-			expiredTime, err := time.Parse(time.RFC3339, alert.Properties.Expires)
-			if err != nil {
-				return nil, err
-			}
-			definedTime = expiredTime
-		}
-
-		if alert.Properties.Ends != "" {
-			endingTime, err := time.Parse(time.RFC3339, alert.Properties.Ends)
-			if err != nil {
-				return nil, err
-			}
-			if definedTime.IsZero() {
-				definedTime = endingTime
-			} else {
-				if definedTime.Before(endingTime) {
-					definedTime = endingTime
-				}
-			}
-		}
-
 		// Delete the alert if it is before now
-		if definedTime.Before(givenTime) {
+		timeToUse := alert.Properties.Ends
+		if timeToUse.IsZero() {
+			timeToUse = alert.Properties.Expires
+		}
+
+		if givenTime.After(timeToUse) {
 			expiredAlerts = append(expiredAlerts, alert)
 		}
 	}
