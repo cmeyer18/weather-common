@@ -21,11 +21,11 @@ type Polygon struct {
 func parsePolygon(polygon interface{}) (*Polygon, error) {
 	rawMultiPoints, ok := polygon.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("not a valid polygon, got %v", rawMultiPoints)
+		return nil, fmt.Errorf("not a valid MultiPoint, got %v", rawMultiPoints)
 	}
 
 	if len(rawMultiPoints) == 0 {
-		return nil, errors.New("polygon contains no points")
+		return nil, errors.New("MultiPoint contains no Points ")
 	}
 
 	var outerPath *MultiPoint
@@ -43,9 +43,10 @@ func parsePolygon(polygon interface{}) (*Polygon, error) {
 		}
 	}
 
-	p := Polygon{}
-	p.OuterPath = outerPath
-	p.InnerPaths = innerPaths
+	p := Polygon{
+		OuterPath:  outerPath,
+		InnerPaths: innerPaths,
+	}
 
 	return &p, nil
 }
@@ -55,7 +56,7 @@ func NewPolygonShape(outerPath *MultiPoint, innerPaths []*MultiPoint) *Polygon {
 }
 
 func (p *Polygon) ContainsPoint(point *Point) bool {
-	return !p.containedInInnerPaths(point) && p.containedInOuterPath(point)
+	return p.containedInOuterPath(point) && !p.containedInInnerPaths(point)
 }
 
 func (p *Polygon) contains(point *Point, multiPoint *MultiPoint) bool {

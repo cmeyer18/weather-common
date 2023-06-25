@@ -12,7 +12,7 @@ type MultiPoint struct {
 func parseMultiPoint(multiPoint interface{}) (*MultiPoint, error) {
 	rawMultiPoint, ok := multiPoint.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("not a valid polygon, got %v", rawMultiPoint)
+		return nil, fmt.Errorf("not a valid MultiPoint, got %v", rawMultiPoint)
 	}
 
 	if len(rawMultiPoint) == 0 {
@@ -28,8 +28,9 @@ func parseMultiPoint(multiPoint interface{}) (*MultiPoint, error) {
 		points = append(points, parsedPoint)
 	}
 
-	p := MultiPoint{}
-	p.Points = points
+	p := MultiPoint{
+		Points: points,
+	}
 
 	return &p, nil
 }

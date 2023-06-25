@@ -68,9 +68,9 @@ func (a *Alert) GetListOfZones() []string {
 	return a.Properties.Geocode.UGC
 }
 
-func (a *Alert) ParseAlert(data []byte) error {
+func ParseAlert(data []byte) (*Alert, error) {
 	if string(data) == "null" || string(data) == `""` {
-		return nil
+		return nil, nil
 	}
 
 	var jsonAlert struct {
@@ -125,12 +125,12 @@ func (a *Alert) ParseAlert(data []byte) error {
 	}
 
 	if err := json.Unmarshal(data, &jsonAlert); err != nil {
-		return err
+		return nil, err
 	}
 
-	geometry, err := geojson.ParseGeometry(jsonAlert.Geometry)
+	alertGeometry, err := geojson.ParseGeometry(jsonAlert.Geometry)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	alertPropertiesGeocode := AlertPropertiesGeocode{
@@ -138,14 +138,14 @@ func (a *Alert) ParseAlert(data []byte) error {
 		SAME: jsonAlert.Properties.Geocode.Same,
 	}
 
-	var references []AlertPropertiesReferences
+	var alertReferences []AlertPropertiesReferences
 	for _, reference := range jsonAlert.Properties.References {
 		sentTime, err := time.Parse(time.RFC3339, reference.Sent)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		references = append(references, AlertPropertiesReferences{
+		alertReferences = append(alertReferences, AlertPropertiesReferences{
 			ID:         reference.ID,
 			Identifier: reference.Identifier,
 			Sender:     reference.Sender,
@@ -157,7 +157,7 @@ func (a *Alert) ParseAlert(data []byte) error {
 	if jsonAlert.Properties.Sent != "" {
 		sentTime, err = time.Parse(time.RFC3339, jsonAlert.Properties.Sent)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -165,7 +165,7 @@ func (a *Alert) ParseAlert(data []byte) error {
 	if jsonAlert.Properties.Effective != "" {
 		effectiveTime, err = time.Parse(time.RFC3339, jsonAlert.Properties.Effective)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -173,7 +173,7 @@ func (a *Alert) ParseAlert(data []byte) error {
 	if jsonAlert.Properties.Onset != "" {
 		onsetTime, err = time.Parse(time.RFC3339, jsonAlert.Properties.Onset)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -181,7 +181,7 @@ func (a *Alert) ParseAlert(data []byte) error {
 	if jsonAlert.Properties.Expires != "" {
 		expiresTime, err = time.Parse(time.RFC3339, jsonAlert.Properties.Expires)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -189,7 +189,7 @@ func (a *Alert) ParseAlert(data []byte) error {
 	if jsonAlert.Properties.Ends != "" {
 		endsTime, err = time.Parse(time.RFC3339, jsonAlert.Properties.Ends)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -210,7 +210,7 @@ func (a *Alert) ParseAlert(data []byte) error {
 		AreaDesc:      jsonAlert.Properties.AreaDesc,
 		Geocode:       alertPropertiesGeocode,
 		AffectedZones: jsonAlert.Properties.AffectedZones,
-		References:    references,
+		References:    alertReferences,
 		Sent:          sentTime,
 		Effective:     effectiveTime,
 		Onset:         onsetTime,
@@ -232,12 +232,12 @@ func (a *Alert) ParseAlert(data []byte) error {
 		Parameters:    alertPropertiesParameters,
 	}
 
-	a.ID = jsonAlert.ID
-	a.Properties = alertProperties
-	a.Type = jsonAlert.Type
-	if geometry != nil {
-		a.Geometry = geometry
+	a := Alert{
+		ID:         jsonAlert.ID,
+		Properties: alertProperties,
+		Type:       jsonAlert.Type,
+		Geometry:   alertGeometry,
 	}
 
-	return nil
+	return &a, nil
 }

@@ -16,14 +16,15 @@ func parsePoint(point interface{}) (*Point, error) {
 	}
 
 	if len(rawPoint) != 2 {
-		return nil, fmt.Errorf("coordinate array not length of 2, got %v", rawPoint)
+		return nil, fmt.Errorf("array not length of 2, got %v", rawPoint)
 	}
 
 	longitude := rawPoint[0].(float64)
 	latitude := rawPoint[1].(float64)
 
-	p := Point{}
-	p.Latitude = latitude
-	p.Longitude = longitude
+	p := Point{
+		Latitude:  latitude,
+		Longitude: longitude,
+	}
 	return &p, nil
 }

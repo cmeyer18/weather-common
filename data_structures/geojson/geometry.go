@@ -27,7 +27,7 @@ func ParseGeometry(geometry map[string]interface{}) (*Geometry, error) {
 	case "Polygon":
 		polygon, ok := geometry["coordinates"]
 		if !ok {
-			return nil, fmt.Errorf("unable to process geometry polygons %v", polygon)
+			return nil, fmt.Errorf("unable to process Polygon %v", polygon)
 		}
 
 		parsedPolygon, err := parsePolygon(polygon)
@@ -40,7 +40,7 @@ func ParseGeometry(geometry map[string]interface{}) (*Geometry, error) {
 	case "MultiPolygon":
 		parsedPolygons, ok := geometry["coordinates"].([]interface{})
 		if !ok {
-			return nil, fmt.Errorf("unable to process geometry polygons %v", parsedPolygons)
+			return nil, fmt.Errorf("unable to process MultiPolygon %v", parsedPolygons)
 		}
 
 		var polygons []*Polygon
