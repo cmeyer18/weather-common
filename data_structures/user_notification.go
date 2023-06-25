@@ -1,7 +1,7 @@
 package data_structures
 
 import (
-	"github.com/cmeyer18/weather-common/generative/golang"
+	"github.com/cmeyer18/weather-common/v2/generative/golang"
 	"time"
 )
 

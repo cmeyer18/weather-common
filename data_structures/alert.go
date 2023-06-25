@@ -2,7 +2,7 @@ package data_structures
 
 import (
 	"encoding/json"
-	"github.com/cmeyer18/weather-common/data_structures/geojson"
+	"github.com/cmeyer18/weather-common/v2/data_structures/geojson"
 	"time"
 )
 

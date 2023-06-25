@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/cmeyer18/weather-common/generative/generators/golang"
-	"github.com/cmeyer18/weather-common/generative/generators/swift"
+	"github.com/cmeyer18/weather-common/v2/generative/generators/golang"
+	"github.com/cmeyer18/weather-common/v2/generative/generators/swift"
 	"os"
 )
 

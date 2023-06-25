@@ -1,8 +1,8 @@
 package collections
 
 import (
-	"github.com/cmeyer18/weather-common/custom_mongo"
-	"github.com/cmeyer18/weather-common/data_structures"
+	"github.com/cmeyer18/weather-common/v2/custom_mongo"
+	"github.com/cmeyer18/weather-common/v2/data_structures"
 )
 
 type SPCOutlookCollection struct {
