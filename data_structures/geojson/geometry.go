@@ -5,8 +5,9 @@ import (
 )
 
 type Geometry struct {
-	Type     string     `json:"type" bson:"type"`
-	Polygons []*Polygon `json:"polygon" bson:"polygon"`
+	Type         string     `json:"type" bson:"type"`
+	Polygon      *Polygon   `json:"Polygon" bson:"Polygon"`
+	MultiPolygon []*Polygon `json:"MultiPolygon" bson:"MultiPolygon"`
 }
 
 func ParseGeometry(geometry map[string]interface{}) (*Geometry, error) {
@@ -24,6 +25,19 @@ func ParseGeometry(geometry map[string]interface{}) (*Geometry, error) {
 
 	switch parsedType {
 	case "Polygon":
+		polygon, ok := geometry["coordinates"]
+		if !ok {
+			return nil, fmt.Errorf("unable to process geometry polygons %v", polygon)
+		}
+
+		parsedPolygon, err := parsePolygon(polygon)
+		if err != nil {
+			return nil, err
+		}
+
+		g.Polygon = parsedPolygon
+		break
+	case "MultiPolygon":
 		parsedPolygons, ok := geometry["coordinates"].([]interface{})
 		if !ok {
 			return nil, fmt.Errorf("unable to process geometry polygons %v", parsedPolygons)
@@ -39,7 +53,9 @@ func ParseGeometry(geometry map[string]interface{}) (*Geometry, error) {
 			polygons = append(polygons, parsedPolygon)
 		}
 
-		g.Polygons = polygons
+		g.MultiPolygon = polygons
+		break
+	case "GeometryCollection":
 		break
 	default:
 		return nil, fmt.Errorf("unknown type %v", parsedType)

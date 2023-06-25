@@ -14,63 +14,76 @@ import (
 )
 
 type Polygon struct {
-	Points []*Point `json:"points,omitempty"`
+	OuterPath  *MultiPoint   `json:"outerPath" bson:"outerPath"`
+	InnerPaths []*MultiPoint `json:"innerPaths,omitempty" bson:"innerPaths"`
 }
 
 func parsePolygon(polygon interface{}) (*Polygon, error) {
-	rawPolygon, ok := polygon.([]interface{})
+	rawMultiPoints, ok := polygon.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("not a valid polygon, got %v", rawPolygon)
+		return nil, fmt.Errorf("not a valid polygon, got %v", rawMultiPoints)
 	}
 
-	if len(rawPolygon) == 0 {
+	if len(rawMultiPoints) == 0 {
 		return nil, errors.New("polygon contains no points")
 	}
 
-	var points []*Point
-	for _, point := range rawPolygon {
-		parsedPoint, err := parsePoint(point)
+	var outerPath *MultiPoint
+	var innerPaths []*MultiPoint
+	for i, point := range rawMultiPoints {
+		parsedMultiPoint, err := parseMultiPoint(point)
 		if err != nil {
 			return nil, err
 		}
-		points = append(points, parsedPoint)
+
+		if i == 0 {
+			outerPath = parsedMultiPoint
+		} else {
+			innerPaths = append(innerPaths, parsedMultiPoint)
+		}
 	}
 
 	p := Polygon{}
-	p.Points = points
+	p.OuterPath = outerPath
+	p.InnerPaths = innerPaths
 
 	return &p, nil
 }
 
-func NewPolygonShape(points []*Point) *Polygon {
-	return &Polygon{Points: points}
+func NewPolygonShape(outerPath *MultiPoint, innerPaths []*MultiPoint) *Polygon {
+	return &Polygon{OuterPath: outerPath, InnerPaths: innerPaths}
 }
 
-func (p *Polygon) Add(point *Point) {
-	p.Points = append(p.Points, point)
+func (p *Polygon) ContainsPoint(point *Point) bool {
+	return !p.containedInInnerPaths(point) && p.containedInOuterPath(point)
 }
 
-func (p *Polygon) IsClosed() bool {
-	return len(p.Points) >= 3
-}
-
-func (p *Polygon) Contains(point *Point) bool {
-	if !p.IsClosed() {
-		return false
-	}
-
-	start := len(p.Points) - 1
+func (p *Polygon) contains(point *Point, multiPoint *MultiPoint) bool {
+	start := len(multiPoint.Points) - 1
 	end := 0
 
-	contains := p.intersectsWithRaycast(point, p.Points[start], p.Points[end])
+	contains := p.intersectsWithRaycast(point, multiPoint.Points[start], multiPoint.Points[end])
 
-	for i := 1; i < len(p.Points); i++ {
-		if p.intersectsWithRaycast(point, p.Points[i-1], p.Points[i]) {
+	for i := 1; i < len(multiPoint.Points); i++ {
+		if p.intersectsWithRaycast(point, multiPoint.Points[i-1], multiPoint.Points[i]) {
 			contains = !contains
 		}
 	}
 
 	return contains
+}
+
+func (p *Polygon) containedInInnerPaths(point *Point) bool {
+	for _, interPath := range p.InnerPaths {
+		if p.contains(point, interPath) {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Polygon) containedInOuterPath(point *Point) bool {
+	return p.contains(point, p.OuterPath)
 }
 
 func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {

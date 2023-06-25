@@ -5,8 +5,8 @@ import (
 )
 
 type Point struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"lat" bson:"lat"`
+	Longitude float64 `json:"lon" bson:"lon"`
 }
 
 func parsePoint(point interface{}) (*Point, error) {

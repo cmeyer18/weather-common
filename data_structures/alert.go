@@ -6,26 +6,11 @@ import (
 	"time"
 )
 
-type AlertPropertiesGeocode struct {
-	SAME []string `json:"SAME" bson:"same"`
-	UGC  []string `json:"UGC" bson:"ugc"`
-}
-
-type AlertPropertiesParameters struct {
-	AWIPSidentifier   []string    `json:"AWIPSidentifier" bson:"awipsidentifier"`
-	WMOidentifier     []string    `json:"WMOidentifier" bson:"wmoidentifier"`
-	NWSheadline       []string    `json:"NWSheadline" bson:"nwsheadline"`
-	BLOCKCHANNEL      []string    `json:"BLOCKCHANNEL" bson:"blockchannel"`
-	VTEC              []string    `json:"VTEC" bson:"vtec"`
-	EventEndingTime   []time.Time `json:"eventEndingTime" bson:"eventendingtime"`
-	ExpiredReferences []string    `json:"expiredReferences" bson:"expiredreferences"`
-}
-
-type AlertPropertiesReferences struct {
-	ID         string    `json:"@id"`
-	Identifier string    `json:"identifier"`
-	Sender     string    `json:"sender"`
-	Sent       time.Time `json:"sent"`
+type Alert struct {
+	ID         string            `json:"id" bson:"id"`
+	Type       string            `json:"type" bson:"type"`
+	Geometry   *geojson.Geometry `json:"geometry" bson:"geometry"`
+	Properties AlertProperties   `json:"properties" bson:"properties"`
 }
 
 type AlertProperties struct {
@@ -34,7 +19,7 @@ type AlertProperties struct {
 	ID            string                      `json:"id" bson:"id"`
 	AreaDesc      string                      `json:"areaDesc" bson:"areaDesc"`
 	Geocode       AlertPropertiesGeocode      `json:"geocode" bson:"geocode"`
-	AffectedZones []string                    `json:"affectedZones" bson:"affectedzones"`
+	AffectedZones []string                    `json:"affectedZones" bson:"affectedZones"`
 	References    []AlertPropertiesReferences `json:"references" bson:"references"`
 	Sent          time.Time                   `json:"sent" bson:"sent"`
 	Effective     time.Time                   `json:"effective" bson:"effective"`
@@ -42,14 +27,14 @@ type AlertProperties struct {
 	Expires       time.Time                   `json:"expires" bson:"expires"`
 	Ends          time.Time                   `json:"ends" bson:"ends"`
 	Status        string                      `json:"status" bson:"status"`
-	MessageType   string                      `json:"messageType" bson:"messagetype"`
+	MessageType   string                      `json:"messageType" bson:"messageType"`
 	Category      string                      `json:"category" bson:"category"`
 	Severity      string                      `json:"severity" bson:"severity"`
 	Certainty     string                      `json:"certainty" bson:"certainty"`
 	Urgency       string                      `json:"urgency" bson:"urgency"`
 	Event         string                      `json:"event" bson:"event"`
 	Sender        string                      `json:"sender" bson:"sender"`
-	SenderName    string                      `json:"senderName" bson:"sendername"`
+	SenderName    string                      `json:"senderName" bson:"senderName"`
 	Headline      string                      `json:"headline" bson:"headline"`
 	Description   string                      `json:"description" bson:"description"`
 	Instruction   string                      `json:"instruction" bson:"instruction"`
@@ -57,11 +42,26 @@ type AlertProperties struct {
 	Parameters    AlertPropertiesParameters   `json:"parameters" bson:"parameters"`
 }
 
-type Alert struct {
-	ID         string            `json:"id" bson:"id"`
-	Type       string            `json:"type" bson:"type"`
-	Geometry   *geojson.Geometry `json:"geometry" bson:"geometry"`
-	Properties AlertProperties   `json:"properties" bson:"properties"`
+type AlertPropertiesGeocode struct {
+	SAME []string `json:"SAME" bson:"SAME"`
+	UGC  []string `json:"UGC" bson:"UGC"`
+}
+
+type AlertPropertiesParameters struct {
+	AWIPSIdentifier   []string    `json:"AWIPSidentifier" bson:"AWIPSidentifier"`
+	WMOIdentifier     []string    `json:"WMOidentifier" bson:"WMOidentifier"`
+	NWSHeadline       []string    `json:"NWSheadline" bson:"NWSheadline"`
+	BlockChannel      []string    `json:"BLOCKCHANNEL" bson:"BLOCKCHANNEL"`
+	VTEC              []string    `json:"VTEC" bson:"VTEC"`
+	EventEndingTime   []time.Time `json:"eventEndingTime" bson:"eventEndingTime"`
+	ExpiredReferences []string    `json:"expiredReferences" bson:"expiredReferences"`
+}
+
+type AlertPropertiesReferences struct {
+	ID         string    `json:"@id" bson:"@id"`
+	Identifier string    `json:"identifier" bson:"identifier"`
+	Sender     string    `json:"sender" bson:"sender"`
+	Sent       time.Time `json:"sent" bson:"sent"`
 }
 
 func (a *Alert) GetListOfZones() []string {
@@ -194,41 +194,42 @@ func (a *Alert) ParseAlert(data []byte) error {
 	}
 
 	alertPropertiesParameters := AlertPropertiesParameters{
-		AWIPSidentifier:   jsonAlert.Properties.Parameters.AWIPSidentifier,
-		WMOidentifier:     jsonAlert.Properties.Parameters.WMOidentifier,
-		NWSheadline:       jsonAlert.Properties.Parameters.NWSheadline,
-		BLOCKCHANNEL:      jsonAlert.Properties.Parameters.Blockchannel,
+		AWIPSIdentifier:   jsonAlert.Properties.Parameters.AWIPSidentifier,
+		WMOIdentifier:     jsonAlert.Properties.Parameters.WMOidentifier,
+		NWSHeadline:       jsonAlert.Properties.Parameters.NWSheadline,
+		BlockChannel:      jsonAlert.Properties.Parameters.Blockchannel,
 		VTEC:              jsonAlert.Properties.Parameters.Vtec,
 		EventEndingTime:   jsonAlert.Properties.Parameters.EventEndingTime,
 		ExpiredReferences: jsonAlert.Properties.Parameters.ExpiredReferences,
 	}
 
 	alertProperties := AlertProperties{
-		AtID:        jsonAlert.Properties.AtID,
-		Type:        jsonAlert.Properties.Type,
-		ID:          jsonAlert.Properties.ID,
-		AreaDesc:    jsonAlert.Properties.AreaDesc,
-		Geocode:     alertPropertiesGeocode,
-		References:  references,
-		Sent:        sentTime,
-		Effective:   effectiveTime,
-		Onset:       onsetTime,
-		Expires:     expiresTime,
-		Ends:        endsTime,
-		Status:      jsonAlert.Properties.Status,
-		MessageType: jsonAlert.Properties.MessageType,
-		Category:    jsonAlert.Properties.Category,
-		Severity:    jsonAlert.Properties.Severity,
-		Certainty:   jsonAlert.Properties.Certainty,
-		Urgency:     jsonAlert.Properties.Urgency,
-		Event:       jsonAlert.Properties.Event,
-		Sender:      jsonAlert.Properties.Sender,
-		SenderName:  jsonAlert.Properties.SenderName,
-		Headline:    jsonAlert.Properties.Headline,
-		Description: jsonAlert.Properties.Description,
-		Instruction: jsonAlert.Properties.Instruction,
-		Response:    jsonAlert.Properties.Response,
-		Parameters:  alertPropertiesParameters,
+		AtID:          jsonAlert.Properties.AtID,
+		Type:          jsonAlert.Properties.Type,
+		ID:            jsonAlert.Properties.ID,
+		AreaDesc:      jsonAlert.Properties.AreaDesc,
+		Geocode:       alertPropertiesGeocode,
+		AffectedZones: jsonAlert.Properties.AffectedZones,
+		References:    references,
+		Sent:          sentTime,
+		Effective:     effectiveTime,
+		Onset:         onsetTime,
+		Expires:       expiresTime,
+		Ends:          endsTime,
+		Status:        jsonAlert.Properties.Status,
+		MessageType:   jsonAlert.Properties.MessageType,
+		Category:      jsonAlert.Properties.Category,
+		Severity:      jsonAlert.Properties.Severity,
+		Certainty:     jsonAlert.Properties.Certainty,
+		Urgency:       jsonAlert.Properties.Urgency,
+		Event:         jsonAlert.Properties.Event,
+		Sender:        jsonAlert.Properties.Sender,
+		SenderName:    jsonAlert.Properties.SenderName,
+		Headline:      jsonAlert.Properties.Headline,
+		Description:   jsonAlert.Properties.Description,
+		Instruction:   jsonAlert.Properties.Instruction,
+		Response:      jsonAlert.Properties.Response,
+		Parameters:    alertPropertiesParameters,
 	}
 
 	a.ID = jsonAlert.ID
