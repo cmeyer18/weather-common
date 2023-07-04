@@ -1,16 +1,8 @@
 package geojson
 
-/*
-	Copyright (c) 2013 Kelly Dunn
-	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
 import (
 	"errors"
 	"fmt"
-	"math"
 )
 
 type Polygon struct {
@@ -59,24 +51,9 @@ func (p *Polygon) ContainsPoint(point *Point) bool {
 	return p.containedInOuterPath(point) && !p.containedInInnerPaths(point)
 }
 
-func (p *Polygon) contains(point *Point, multiPoint *MultiPoint) bool {
-	start := len(multiPoint.Points) - 1
-	end := 0
-
-	contains := p.intersectsWithRaycast(point, multiPoint.Points[start], multiPoint.Points[end])
-
-	for i := 1; i < len(multiPoint.Points); i++ {
-		if p.intersectsWithRaycast(point, multiPoint.Points[i-1], multiPoint.Points[i]) {
-			contains = !contains
-		}
-	}
-
-	return contains
-}
-
 func (p *Polygon) containedInInnerPaths(point *Point) bool {
 	for _, interPath := range p.InnerPaths {
-		if p.contains(point, interPath) {
+		if pointInMultiPoint(point, interPath) {
 			return true
 		}
 	}
@@ -84,47 +61,104 @@ func (p *Polygon) containedInInnerPaths(point *Point) bool {
 }
 
 func (p *Polygon) containedInOuterPath(point *Point) bool {
-	return p.contains(point, p.OuterPath)
+	return pointInMultiPoint(point, p.OuterPath)
 }
 
-func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
-	// Always ensure that the first point has a y coordinate that is less than the second point
-	if start.Longitude > end.Longitude {
-		// Switch the points if otherwise.
-		start = end
-		end = start
-	}
-
-	// Move the point's y coordinate outside the bounds of the testing region so we can start drawing a ray
-	for point.Longitude == start.Longitude || point.Longitude == end.Longitude {
-		newLng := math.Nextafter(point.Longitude, math.Inf(1))
-		point = &Point{point.Latitude, newLng}
-	}
-
-	// If we are outside the polygon, indicate so.
-	if point.Longitude < start.Longitude || point.Longitude > end.Longitude {
+func pointInMultiPoint(point *Point, multiPoint *MultiPoint) bool {
+	numPoints := len(multiPoint.Points)
+	if numPoints < 3 {
 		return false
 	}
 
-	if start.Latitude > end.Latitude {
-		if point.Latitude > start.Latitude {
-			return false
-		}
-		if point.Latitude < end.Latitude {
-			return true
-		}
-
-	} else {
-		if point.Latitude > end.Latitude {
-			return false
-		}
-		if point.Latitude < start.Latitude {
+	// Check if the point is one of the multiPoint points
+	for _, p := range multiPoint.Points {
+		if point.Latitude == p.Latitude && point.Longitude == p.Longitude {
 			return true
 		}
 	}
 
-	raySlope := (point.Longitude - start.Longitude) / (point.Latitude - start.Latitude)
-	diagSlope := (end.Longitude - start.Longitude) / (end.Latitude - start.Latitude)
+	// Check if the point is on the edge of the multiPoint
+	for i := 0; i < numPoints; i++ {
+		j := (i + 1) % numPoints
+		p1 := multiPoint.Points[i]
+		p2 := multiPoint.Points[j]
+		if pointOnLine(point, p1, p2) {
+			return true
+		}
+	}
 
-	return raySlope >= diagSlope
+	// Perform raycasting algorithm to determine if the point is inside the multiPoint
+	inside := false
+	for i := 0; i < numPoints; i++ {
+		j := (i + 1) % numPoints
+		p1 := multiPoint.Points[i]
+		p2 := multiPoint.Points[j]
+		if intersectsRay(point, p1, p2) {
+			inside = !inside
+		}
+	}
+
+	return inside
+}
+
+func pointOnLine(point, lineStart, lineEnd *Point) bool {
+	crossProduct := (point.Latitude-lineStart.Latitude)*(lineEnd.Longitude-lineStart.Longitude) - (point.Longitude-lineStart.Longitude)*(lineEnd.Latitude-lineStart.Latitude)
+	if crossProduct != 0 {
+		return false
+	}
+
+	dotProduct := (point.Longitude-lineStart.Longitude)*(lineEnd.Longitude-lineStart.Longitude) + (point.Latitude-lineStart.Latitude)*(lineEnd.Latitude-lineStart.Latitude)
+	if dotProduct < 0 {
+		return false
+	}
+
+	squaredLength := (lineEnd.Longitude-lineStart.Longitude)*(lineEnd.Longitude-lineStart.Longitude) + (lineEnd.Latitude-lineStart.Latitude)*(lineEnd.Latitude-lineStart.Latitude)
+	if dotProduct > squaredLength {
+		return false
+	}
+
+	return true
+}
+
+func intersectsRay(point, lineStart, lineEnd *Point) bool {
+	if point.Longitude > max(lineStart.Longitude, lineEnd.Longitude) {
+		return false
+	}
+
+	if point.Longitude < min(lineStart.Longitude, lineEnd.Longitude) {
+		return false
+	}
+
+	if point.Latitude > max(lineStart.Latitude, lineEnd.Latitude) {
+		return false
+	}
+
+	if lineStart.Longitude == lineEnd.Longitude {
+		if point.Longitude == lineStart.Longitude {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	xIntersection := lineStart.Longitude + (point.Latitude-lineStart.Latitude)*(lineEnd.Longitude-lineStart.Longitude)/(lineEnd.Latitude-lineStart.Latitude)
+	if point.Longitude < xIntersection {
+		return true
+	} else {
+		return false
+	}
+}
+
+func max(a, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
 }
