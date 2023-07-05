@@ -69,6 +69,9 @@ func TestPolygon_ContainsPoint(t *testing.T) {
 		},
 	}
 
+	// Add item in the polygon
+	assert.True(t, polygon.ContainsPoint(&Point{Latitude: 2.5, Longitude: 2.5}))
+
 	// On edge of inner path
 	assert.False(t, polygon.ContainsPoint(&Point{Latitude: 2, Longitude: 2}))
 
