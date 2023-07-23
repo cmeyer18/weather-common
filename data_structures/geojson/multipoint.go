@@ -12,7 +12,7 @@ type MultiPoint struct {
 func parseMultiPoint(multiPoint interface{}) (*MultiPoint, error) {
 	rawMultiPoint, ok := multiPoint.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("not a valid MultiPoint, got %v", rawMultiPoint)
+		return nil, fmt.Errorf("not a valid MultiPoint, got %v", multiPoint)
 	}
 
 	if len(rawMultiPoint) == 0 {
