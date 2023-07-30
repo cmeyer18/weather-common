@@ -6,8 +6,12 @@ import (
 )
 
 func Test_parsePolygon(t *testing.T) {
-	t.Skip()
-	data := [][]interface{}{{0.0, 0.0}}
+	var data []interface{}
+	data = append(data, []interface{}{
+		makeCoordinate(1.2, 2.2),
+		makeCoordinate(1.4, 5.5),
+		makeCoordinate(1.23, 1.234),
+	})
 
 	point, err := parsePolygon(data)
 	assert.NoError(t, err)
