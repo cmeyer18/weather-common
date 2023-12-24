@@ -1,0 +1,41 @@
+name: CI
+
+on: 
+  push
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Kickoff release
+        id: release
+        if: github.ref == 'refs/heads/master'
+        uses: rymndhng/release-on-push-action@v0.28.0
+        with:
+          bump_version_scheme: minor
+          tag_prefix: v
+
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+
+      - name: Setup golang
+        uses: actions/setup-go@v5.0.0
+        with:
+          go-version: '1.21.5'
+
+      - name: Build weather-common
+        run: go build ./...
+        
+
+  go-test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.0
+        
+      - name: Go test 
+        run: go test -v ./...
