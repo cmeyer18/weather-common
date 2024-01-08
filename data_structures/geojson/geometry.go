@@ -1,13 +1,43 @@
 package geojson
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 )
 
 type Geometry struct {
-	Type         string     `json:"type" bson:"type"`
-	Polygon      *Polygon   `json:"Polygon" bson:"Polygon"`
-	MultiPolygon []*Polygon `json:"MultiPolygon" bson:"MultiPolygon"`
+	Type         string     `json:"type"`
+	Polygon      *Polygon   `json:"Polygon"`
+	MultiPolygon []*Polygon `json:"MultiPolygon"`
+}
+
+func (g *Geometry) Value() (driver.Value, error) {
+	if g.Type == "" {
+		return "", nil
+	}
+
+	return json.Marshal(g)
+}
+
+func (g *Geometry) Scan(value interface{}) error {
+	byteData := value.([]byte)
+
+	var unmarshalledData map[string]interface{}
+	err := json.Unmarshal(byteData, &unmarshalledData)
+	if err != nil {
+		return err
+	}
+
+	geometry, err := ParseGeometry(unmarshalledData)
+	if err != nil {
+		return err
+	}
+
+	g.Type = geometry.Type
+	g.Polygon = geometry.Polygon
+	g.MultiPolygon = geometry.MultiPolygon
+	return nil
 }
 
 func ParseGeometry(geometry map[string]interface{}) (*Geometry, error) {

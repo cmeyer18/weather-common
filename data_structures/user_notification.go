@@ -6,16 +6,16 @@ import (
 )
 
 type UserNotification struct {
-	ID               string                  `json:"id" bson:"id"`
-	UserID           string                  `json:"userid" bson:"userid"`
-	ZoneCode         string                  `json:"zonecode" bson:"zonecode"`
-	CountyCode       string                  `json:"countycode" bson:"countycode"`
-	CreationTime     time.Time               `json:"creationtime" bson:"creationtime"`
-	Lat              float64                 `json:"lat" bson:"lat"`
-	Lng              float64                 `json:"lng" bson:"lng"`
-	FormattedAddress string                  `json:"formattedaddress" bson:"formattedaddress"`
-	APNKey           string                  `json:"apnKey" bson:"apnKey"`
-	LocationName     string                  `json:"locationName" bson:"locationName"`
-	SPCOptions       []golang.SPCOutlookType `json:"spcOptions" bson:"spcOptions"`
-	AlertOptions     []golang.AlertType      `json:"alertOptions" bson:"alertOptions"`
+	ID               string                  `json:"id"`
+	UserID           string                  `json:"userid"`
+	ZoneCode         string                  `json:"zonecode"`
+	CountyCode       string                  `json:"countycode"`
+	CreationTime     time.Time               `json:"creationtime"`
+	Lat              float64                 `json:"lat"`
+	Lng              float64                 `json:"lng"`
+	FormattedAddress string                  `json:"formattedaddress"`
+	APNKey           string                  `json:"apnKey"`
+	LocationName     string                  `json:"locationName"`
+	SPCOptions       []golang.SPCOutlookType `json:"spcOptions"`
+	AlertOptions     []golang.AlertType      `json:"alertOptions"`
 }

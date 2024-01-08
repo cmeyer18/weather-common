@@ -6,8 +6,8 @@ import (
 )
 
 type Polygon struct {
-	OuterPath  *MultiPoint   `json:"outerPath" bson:"outerPath"`
-	InnerPaths []*MultiPoint `json:"innerPaths,omitempty" bson:"innerPaths"`
+	OuterPath  *MultiPoint   `json:"outerPath"`
+	InnerPaths []*MultiPoint `json:"innerPaths,omitempty"`
 }
 
 func parsePolygon(polygon interface{}) (*Polygon, error) {

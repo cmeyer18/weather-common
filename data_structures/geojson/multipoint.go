@@ -6,7 +6,7 @@ import (
 )
 
 type MultiPoint struct {
-	Points []*Point `json:"points,omitempty" bson:"points"`
+	Points []*Point `json:"points,omitempty"`
 }
 
 func parseMultiPoint(multiPoint interface{}) (*MultiPoint, error) {
