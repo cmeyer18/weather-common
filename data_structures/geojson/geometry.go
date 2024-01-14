@@ -68,6 +68,7 @@ func ParseGeometry(geometry map[string]interface{}) (*Geometry, error) {
 		g.Polygon = parsedPolygon
 		break
 	case "MultiPolygon":
+		// TODO check if empty
 		parsedPolygons, ok := geometry["coordinates"].([]interface{})
 		if !ok {
 			return nil, fmt.Errorf("unable to process MultiPolygon %v", parsedPolygons)
