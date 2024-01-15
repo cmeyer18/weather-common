@@ -3,11 +3,6 @@ module github.com/cmeyer18/weather-common/v2
 go 1.21
 
 require (
-	github.com/stretchr/testify v1.8.4
-	go.mongodb.org/mongo-driver v1.13.1
-)
-
-require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect

@@ -9,19 +9,19 @@ import (
 	"time"
 )
 
-var _ PostgresTable[data_structures.ConvectiveOutlook] = (*ConvectiveOutlookTable)(nil)
+var _ PostgresTable[data_structures.ConvectiveOutlook] = (*PostgresConvectiveOutlookTable)(nil)
 
-type ConvectiveOutlookTable struct {
+type PostgresConvectiveOutlookTable struct {
 	conn Connection
 }
 
-func NewConvectiveOutlookTable(conn Connection) ConvectiveOutlookTable {
-	return ConvectiveOutlookTable{
+func NewConvectiveOutlookTable(conn Connection) PostgresConvectiveOutlookTable {
+	return PostgresConvectiveOutlookTable{
 		conn: conn,
 	}
 }
 
-func (p *ConvectiveOutlookTable) Init() error {
+func (p *PostgresConvectiveOutlookTable) Init() error {
 	//language=SQL
 	query := `CREATE TABLE IF NOT EXISTS convectiveOutlookTable(
 		outlookType   varchar(225),
@@ -36,7 +36,7 @@ func (p *ConvectiveOutlookTable) Init() error {
 	return nil
 }
 
-func (p *ConvectiveOutlookTable) Create(outlook *data_structures.ConvectiveOutlook) error {
+func (p *PostgresConvectiveOutlookTable) Create(outlook *data_structures.ConvectiveOutlook) error {
 	//language=SQL
 	query := `INSERT INTO convectiveOutlookTable (outlookType, outlook) VALUES ($1, $2)`
 	marshalledOutlook, err := json.Marshal(outlook)
@@ -52,7 +52,7 @@ func (p *ConvectiveOutlookTable) Create(outlook *data_structures.ConvectiveOutlo
 	return nil
 }
 
-func (p *ConvectiveOutlookTable) Find(publishedTime time.Time, outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
+func (p *PostgresConvectiveOutlookTable) Find(publishedTime time.Time, outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
 	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlookType = $1`
 
 	row := p.conn.db.QueryRow(query, publishedTime, string(outlookType))
@@ -74,7 +74,7 @@ func (p *ConvectiveOutlookTable) Find(publishedTime time.Time, outlookType golan
 	return &outlook, nil
 }
 
-func (p *ConvectiveOutlookTable) FindLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
+func (p *PostgresConvectiveOutlookTable) FindLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
 	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlookType = $1 ORDER BY (outlook->>'VALID')::timestamptz DESC LIMIT 1`
 
 	row := p.conn.db.QueryRow(query, string(outlookType))
