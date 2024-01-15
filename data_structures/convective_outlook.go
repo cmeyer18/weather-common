@@ -1,8 +1,8 @@
 package data_structures
 
 import (
-	"github.com/cmeyer18/weather-common/v2/data_structures/geojson"
-	"github.com/cmeyer18/weather-common/v2/generative/golang"
+	"github.com/cmeyer18/weather-common/v3/data_structures/geojson"
+	"github.com/cmeyer18/weather-common/v3/generative/golang"
 	"time"
 )
 

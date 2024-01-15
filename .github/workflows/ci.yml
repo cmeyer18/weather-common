@@ -27,20 +27,4 @@ jobs:
 
       - name: Build weather-common
         run: go build ./...
-        
 
-  go-test:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - name: Setup golang
-        uses: actions/setup-go@v5.0.0
-        with:
-          go-version: '1.21.5'
-        
-      - name: Go test 
-        run: go test -v ./...

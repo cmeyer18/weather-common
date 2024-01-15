@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/cmeyer18/weather-common/v2/data_structures"
-	"github.com/cmeyer18/weather-common/v2/generative/golang"
+	"github.com/cmeyer18/weather-common/v3/data_structures"
+	"github.com/cmeyer18/weather-common/v3/generative/golang"
 	"time"
 )
 
@@ -75,7 +75,7 @@ func (p *PostgresConvectiveOutlookTable) Find(publishedTime time.Time, outlookTy
 }
 
 func (p *PostgresConvectiveOutlookTable) FindLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
-	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlookType = $1 ORDER BY (outlook->>'VALID')::timestamptz DESC LIMIT 1`
+	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlooktype = $1 ORDER BY (outlook->'features'->0->'properties'->>'VALID')::timestamptz DESC LIMIT 1`
 
 	row := p.conn.db.QueryRow(query, string(outlookType))
 

@@ -2,14 +2,16 @@ package sql
 
 import (
 	"errors"
-	"github.com/cmeyer18/weather-common/v2/data_structures"
+	"github.com/cmeyer18/weather-common/v3/data_structures"
 	"strconv"
 )
 
 var _ PostgresTable[data_structures.UserNotification] = (*PostgresUserNotificationTable)(nil)
 
 type PostgresUserNotificationTable struct {
-	conn Connection
+	conn                          Connection
+	alertOptionsTable             PostgresUserNotificationAlertOptionTable
+	convectiveOutlookOptionsTable PostgresUserNotificationConvectiveOutlookOptionTable
 }
 
 func NewPostgresUserNotificationTable(conn Connection) PostgresUserNotificationTable {
@@ -19,20 +21,18 @@ func NewPostgresUserNotificationTable(conn Connection) PostgresUserNotificationT
 }
 
 func (p *PostgresUserNotificationTable) Init() error {
-	/*
-		NotificationId               string                         `json:"id"`
-		UserID           string                         `json:"userid"`
-		ZoneCode         string                         `json:"zonecode"`
-		CountyCode       string                         `json:"countycode"`
-		CreationTime     time.Time                      `json:"creationtime"`
-		Lat              float64                        `json:"lat"`
-		Lng              float64                        `json:"lng"`
-		FormattedAddress string                         `json:"formattedaddress"`
-		APNKey           string                         `json:"apnKey"`
-		LocationName     string                         `json:"locationName"`
-		SPCOptions       []golang.ConvectiveOutlookType `json:"spcOptions"`
-		AlertOptions     []golang.AlertType             `json:"alertOptions"`
-	*/
+	p.alertOptionsTable = NewPostgresUserNotificationsAlertOptionsTable(p.conn)
+	p.convectiveOutlookOptionsTable = NewPostgresUserNotificationConvectiveOutlookOptionTable(p.conn)
+
+	err := p.alertOptionsTable.Init()
+	if err != nil {
+		return err
+	}
+
+	err = p.convectiveOutlookOptionsTable.Init()
+	if err != nil {
+		return err
+	}
 
 	//language=SQL
 	query := `CREATE TABLE IF NOT EXISTS userNotification(
@@ -45,12 +45,10 @@ func (p *PostgresUserNotificationTable) Init() error {
 		lng					 float,
 		formattedAddress	 varchar(500),
 		apnKey				 varchar(255),
-		locationName		 varchar(255),
-		spcOptions			 jsonb,
-		alertOptions		 jsonb
+		locationName		 varchar(255)
 	)`
 
-	err := p.conn.AddTable(query)
+	err = p.conn.AddTable(query)
 	if err != nil {
 		return err
 	}
@@ -60,7 +58,7 @@ func (p *PostgresUserNotificationTable) Init() error {
 
 func (p *PostgresUserNotificationTable) Create(userNotification data_structures.UserNotification) error {
 	//language=SQL
-	query := `INSERT INTO userNotification (notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName, spcOptions, alertOptions) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+	query := `INSERT INTO userNotification (notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	_, err := p.conn.db.Exec(
 		query,
@@ -74,16 +72,17 @@ func (p *PostgresUserNotificationTable) Create(userNotification data_structures.
 		userNotification.FormattedAddress,
 		userNotification.APNKey,
 		userNotification.LocationName,
-		userNotification.SPCOptions,
-		userNotification.AlertOptions,
 	)
+	if err != nil {
+		return err
+	}
 
-	// TODO convert SPCOptions into a string array
+	err = p.alertOptionsTable.CreateMany(userNotification.NotificationId, userNotification.AlertOptions)
+	if err != nil {
+		return err
+	}
 
-	// TODO convect AlertOptions into a string array
-
-	// Marshal both arrays
-
+	err = p.convectiveOutlookOptionsTable.CreateMany(userNotification.NotificationId, userNotification.ConvectiveOutlookOptions)
 	if err != nil {
 		return err
 	}
@@ -92,7 +91,7 @@ func (p *PostgresUserNotificationTable) Create(userNotification data_structures.
 }
 
 func (p *PostgresUserNotificationTable) Find(notificationId string) (*data_structures.UserNotification, error) {
-	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName, spcOptions, alertOptions FROM userNotification WHERE notificationId = $1`
+	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE notificationId = $1`
 
 	userNotification := data_structures.UserNotification{}
 
@@ -108,8 +107,6 @@ func (p *PostgresUserNotificationTable) Find(notificationId string) (*data_struc
 		&userNotification.FormattedAddress,
 		&userNotification.APNKey,
 		&userNotification.LocationName,
-		&userNotification.SPCOptions,
-		&userNotification.AlertOptions,
 	)
 
 	if err != nil {
@@ -120,7 +117,7 @@ func (p *PostgresUserNotificationTable) Find(notificationId string) (*data_struc
 }
 
 func (p *PostgresUserNotificationTable) FindByUserId(userId string) ([]data_structures.UserNotification, error) {
-	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName, spcOptions, alertOptions FROM userNotification WHERE userId = $1`
+	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE userId = $1`
 
 	row, err := p.conn.db.Query(query, userId)
 	if err != nil {
@@ -141,8 +138,6 @@ func (p *PostgresUserNotificationTable) FindByUserId(userId string) ([]data_stru
 			&userNotification.FormattedAddress,
 			&userNotification.APNKey,
 			&userNotification.LocationName,
-			&userNotification.SPCOptions,
-			&userNotification.AlertOptions,
 		)
 		if err != nil {
 			return nil, err

@@ -3,7 +3,7 @@ package sql
 import (
 	"encoding/json"
 	"errors"
-	"github.com/cmeyer18/weather-common/v2/data_structures"
+	"github.com/cmeyer18/weather-common/v3/data_structures"
 	"strconv"
 )
 
