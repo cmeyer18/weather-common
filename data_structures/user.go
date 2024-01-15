@@ -6,7 +6,7 @@ import (
 )
 
 type UserNotification struct {
-	ID               string                         `json:"id"`
+	NotificationId   string                         `json:"notificationId"`
 	UserID           string                         `json:"userid"`
 	ZoneCode         string                         `json:"zonecode"`
 	CountyCode       string                         `json:"countycode"`

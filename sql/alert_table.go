@@ -61,13 +61,13 @@ func (p *PostgresAlertTable) Find(id string) (*data_structures.Alert, error) {
 		return nil, err
 	}
 
-	newAlert := data_structures.Alert{}
-	err = newAlert.ParseAlert(rawAlert)
+	var alert data_structures.Alert
+	err = json.Unmarshal(rawAlert, &alert)
 	if err != nil {
 		return nil, err
 	}
 
-	return &newAlert, nil
+	return &alert, nil
 }
 
 func (p *PostgresAlertTable) Exists(id string) (bool, error) {
