@@ -8,8 +8,8 @@ import (
 
 func main() {
 	print(os.Getwd())
-	golang.GenerateSpcOutlookGo()
+	golang.GenerateConvectiveOutlookGo()
 	golang.GenerateWeatherAlertsGo()
-	swift.GenerateSpcOutlookSwift()
+	swift.GenerateConvectiveOutlookSwift()
 	swift.GenerateWeatherAlertsSwift()
 }

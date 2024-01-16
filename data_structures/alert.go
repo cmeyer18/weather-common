@@ -47,13 +47,12 @@ type AlertPropertiesGeocode struct {
 }
 
 type AlertPropertiesParameters struct {
-	AWIPSIdentifier   []string    `json:"AWIPSidentifier"`
-	WMOIdentifier     []string    `json:"WMOidentifier"`
-	NWSHeadline       []string    `json:"NWSheadline"`
-	BlockChannel      []string    `json:"BLOCKCHANNEL"`
-	VTEC              []string    `json:"VTEC"`
-	EventEndingTime   []time.Time `json:"SAME"`
-	ExpiredReferences []string    `json:"expiredReferences"`
+	AWIPSIdentifier   []string `json:"AWIPSidentifier"`
+	WMOIdentifier     []string `json:"WMOidentifier"`
+	NWSHeadline       []string `json:"NWSheadline"`
+	BlockChannel      []string `json:"BLOCKCHANNEL"`
+	VTEC              []string `json:"VTEC"`
+	ExpiredReferences []string `json:"expiredReferences"`
 }
 
 type AlertPropertiesReferences struct {
