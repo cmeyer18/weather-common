@@ -90,7 +90,7 @@ func (p *PostgresUserNotificationTable) Create(userNotification data_structures.
 	return nil
 }
 
-func (p *PostgresUserNotificationTable) Find(notificationId string) (*data_structures.UserNotification, error) {
+func (p *PostgresUserNotificationTable) Get(notificationId string) (*data_structures.UserNotification, error) {
 	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE notificationId = $1`
 
 	userNotification := data_structures.UserNotification{}
@@ -109,6 +109,19 @@ func (p *PostgresUserNotificationTable) Find(notificationId string) (*data_struc
 		&userNotification.LocationName,
 	)
 
+	convectiveOptions, err := p.convectiveOutlookOptionsTable.GetConvectiveOutlookOptionsForNotificationId(notificationId)
+	if err != nil {
+		return nil, err
+	}
+
+	alertOptions, err := p.alertOptionsTable.GetAlertOptionsForNotificationId(notificationId)
+	if err != nil {
+		return nil, err
+	}
+
+	userNotification.ConvectiveOutlookOptions = convectiveOptions
+	userNotification.AlertOptions = alertOptions
+
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +129,53 @@ func (p *PostgresUserNotificationTable) Find(notificationId string) (*data_struc
 	return &userNotification, nil
 }
 
-func (p *PostgresUserNotificationTable) FindByUserId(userId string) ([]data_structures.UserNotification, error) {
+func (p *PostgresUserNotificationTable) GetAll() ([]data_structures.UserNotification, error) {
+	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification`
+
+	row, err := p.conn.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var userNotifications []data_structures.UserNotification
+	for row.Next() {
+		userNotification := data_structures.UserNotification{}
+
+		err := row.Scan(&userNotification.NotificationId,
+			&userNotification.UserID,
+			&userNotification.ZoneCode,
+			&userNotification.CountyCode,
+			&userNotification.CreationTime,
+			&userNotification.Lat,
+			&userNotification.Lng,
+			&userNotification.FormattedAddress,
+			&userNotification.APNKey,
+			&userNotification.LocationName,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		convectiveOptions, err := p.convectiveOutlookOptionsTable.GetConvectiveOutlookOptionsForNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		alertOptions, err := p.alertOptionsTable.GetAlertOptionsForNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		userNotification.ConvectiveOutlookOptions = convectiveOptions
+		userNotification.AlertOptions = alertOptions
+
+		userNotifications = append(userNotifications, userNotification)
+	}
+
+	return userNotifications, nil
+}
+
+func (p *PostgresUserNotificationTable) GetByUserId(userId string) ([]data_structures.UserNotification, error) {
 	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE userId = $1`
 
 	row, err := p.conn.db.Query(query, userId)
@@ -142,6 +201,105 @@ func (p *PostgresUserNotificationTable) FindByUserId(userId string) ([]data_stru
 		if err != nil {
 			return nil, err
 		}
+
+		convectiveOptions, err := p.convectiveOutlookOptionsTable.GetConvectiveOutlookOptionsForNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		alertOptions, err := p.alertOptionsTable.GetAlertOptionsForNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		userNotification.ConvectiveOutlookOptions = convectiveOptions
+		userNotification.AlertOptions = alertOptions
+
+		userNotifications = append(userNotifications, userNotification)
+	}
+
+	return userNotifications, nil
+}
+
+func (p *PostgresUserNotificationTable) GetByCodes(codes []string) ([]data_structures.UserNotification, error) {
+	var userNotifications []data_structures.UserNotification
+	for _, code := range codes {
+		query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE zoneCode = $1 OR countyCode = $1`
+
+		userNotification := data_structures.UserNotification{}
+
+		row := p.conn.db.QueryRow(query, code)
+
+		err := row.Scan(&userNotification.NotificationId,
+			&userNotification.UserID,
+			&userNotification.ZoneCode,
+			&userNotification.CountyCode,
+			&userNotification.CreationTime,
+			&userNotification.Lat,
+			&userNotification.Lng,
+			&userNotification.FormattedAddress,
+			&userNotification.APNKey,
+			&userNotification.LocationName,
+		)
+
+		convectiveOptions, err := p.convectiveOutlookOptionsTable.GetConvectiveOutlookOptionsForNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		alertOptions, err := p.alertOptionsTable.GetAlertOptionsForNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		userNotification.ConvectiveOutlookOptions = convectiveOptions
+		userNotification.AlertOptions = alertOptions
+
+		userNotifications = append(userNotifications, userNotification)
+	}
+
+	return userNotifications, nil
+}
+
+func (p *PostgresUserNotificationTable) GetNotificationsWithConvectiveOutlookOptions() ([]data_structures.UserNotification, error) {
+	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE notificationId = $1`
+
+	rows, err := p.conn.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var userNotifications []data_structures.UserNotification
+	for rows.Next() {
+		userNotification := data_structures.UserNotification{}
+
+		err := rows.Scan(&userNotification.NotificationId,
+			&userNotification.UserID,
+			&userNotification.ZoneCode,
+			&userNotification.CountyCode,
+			&userNotification.CreationTime,
+			&userNotification.Lat,
+			&userNotification.Lng,
+			&userNotification.FormattedAddress,
+			&userNotification.APNKey,
+			&userNotification.LocationName,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		convectiveOptions, err := p.convectiveOutlookOptionsTable.GetConvectiveOutlookOptionsForNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		alertOptions, err := p.alertOptionsTable.GetAlertOptionsForNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		userNotification.ConvectiveOutlookOptions = convectiveOptions
+		userNotification.AlertOptions = alertOptions
 
 		userNotifications = append(userNotifications, userNotification)
 	}

@@ -15,7 +15,7 @@ type PostgresConvectiveOutlookTable struct {
 	conn Connection
 }
 
-func NewConvectiveOutlookTable(conn Connection) PostgresConvectiveOutlookTable {
+func NewPostgresConvectiveOutlookTable(conn Connection) PostgresConvectiveOutlookTable {
 	return PostgresConvectiveOutlookTable{
 		conn: conn,
 	}

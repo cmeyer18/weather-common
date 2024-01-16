@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/cmeyer18/weather-common/v3/data_structures"
+	"log"
 	"strconv"
+
+	"github.com/lib/pq"
 )
 
 var _ PostgresTable[data_structures.Alert] = (*PostgresAlertTable)(nil)
@@ -68,6 +71,45 @@ func (p *PostgresAlertTable) Find(id string) (*data_structures.Alert, error) {
 	}
 
 	return &alert, nil
+}
+
+func (p *PostgresAlertTable) FindAlertsByCode(codes []string) ([]data_structures.Alert, error) {
+	query := `
+		SELECT payload
+		FROM alerts
+		WHERE 
+		    alerts.payload->'properties'->'geocode'->'UGC' IS NOT NULL
+			AND EXISTS (
+				SELECT 1
+				FROM jsonb_array_elements_text(alerts.payload->'properties'->'geocode'->'UGC') AS ugc_element
+				WHERE ugc_element.value = ANY ($1)
+			)`
+
+	// Execute the SQL query
+	rows, err := p.conn.db.Query(query, pq.Array(codes))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var alerts []data_structures.Alert
+	for rows.Next() {
+		var alert data_structures.Alert
+
+		var rawAlert []byte
+		err := rows.Scan(&rawAlert)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(rawAlert, &alert)
+		if err != nil {
+			return nil, err
+		}
+
+		alerts = append(alerts, alert)
+	}
+
+	return alerts, nil
 }
 
 func (p *PostgresAlertTable) Exists(id string) (bool, error) {
