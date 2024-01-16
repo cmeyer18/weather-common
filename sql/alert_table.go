@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"github.com/cmeyer18/weather-common/v3/data_structures"
@@ -13,12 +14,12 @@ import (
 var _ PostgresTable[data_structures.Alert] = (*PostgresAlertTable)(nil)
 
 type PostgresAlertTable struct {
-	conn Connection
+	db *sql.DB
 }
 
-func NewPostgresAlertTable(conn Connection) PostgresAlertTable {
+func NewPostgresAlertTable(db *sql.DB) PostgresAlertTable {
 	return PostgresAlertTable{
-		conn: conn,
+		db: db,
 	}
 }
 
@@ -29,7 +30,7 @@ func (p *PostgresAlertTable) Init() error {
 		payload  jsonb not null
 	)`
 
-	err := p.conn.AddTable(query)
+	_, err := p.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -46,7 +47,7 @@ func (p *PostgresAlertTable) Create(alert *data_structures.Alert) error {
 		return err
 	}
 
-	_, err = p.conn.db.Exec(query, alert.ID, marshalledAlert)
+	_, err = p.db.Exec(query, alert.ID, marshalledAlert)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func (p *PostgresAlertTable) Create(alert *data_structures.Alert) error {
 func (p *PostgresAlertTable) Find(id string) (*data_structures.Alert, error) {
 	query := `SELECT payload FROM alerts WHERE id = $1`
 
-	row := p.conn.db.QueryRow(query, id)
+	row := p.db.QueryRow(query, id)
 	var rawAlert []byte
 	err := row.Scan(rawAlert)
 	if err != nil {
@@ -86,7 +87,7 @@ func (p *PostgresAlertTable) FindAlertsByCode(codes []string) ([]data_structures
 			)`
 
 	// Execute the SQL query
-	rows, err := p.conn.db.Query(query, pq.Array(codes))
+	rows, err := p.db.Query(query, pq.Array(codes))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -115,7 +116,7 @@ func (p *PostgresAlertTable) FindAlertsByCode(codes []string) ([]data_structures
 func (p *PostgresAlertTable) Exists(id string) (bool, error) {
 	query := `SELECT count(id) FROM alerts WHERE id = $1`
 
-	row := p.conn.db.QueryRow(query, id)
+	row := p.db.QueryRow(query, id)
 
 	var count int
 	err := row.Scan(&count)
@@ -133,7 +134,7 @@ func (p *PostgresAlertTable) Exists(id string) (bool, error) {
 func (p *PostgresAlertTable) Delete(id string) error {
 	query := `DELETE FROM alerts WHERE id = $1`
 
-	exec, err := p.conn.db.Exec(query, id)
+	exec, err := p.db.Exec(query, id)
 	if err != nil {
 		return err
 	}
@@ -153,7 +154,7 @@ func (p *PostgresAlertTable) Delete(id string) error {
 func (p *PostgresAlertTable) DeleteExpiredAlerts(id string) error {
 	query := `DELETE FROM alerts WHERE id = $1`
 
-	exec, err := p.conn.db.Exec(query, id)
+	exec, err := p.db.Exec(query, id)
 	if err != nil {
 		return err
 	}

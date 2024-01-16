@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/cmeyer18/weather-common/v3/generative/golang"
 	"strconv"
@@ -9,12 +10,12 @@ import (
 var _ PostgresTable[string] = (*PostgresUserNotificationConvectiveOutlookOptionTable)(nil)
 
 type PostgresUserNotificationConvectiveOutlookOptionTable struct {
-	conn Connection
+	db *sql.DB
 }
 
-func NewPostgresUserNotificationConvectiveOutlookOptionTable(conn Connection) PostgresUserNotificationConvectiveOutlookOptionTable {
+func NewPostgresUserNotificationConvectiveOutlookOptionTable(db *sql.DB) PostgresUserNotificationConvectiveOutlookOptionTable {
 	return PostgresUserNotificationConvectiveOutlookOptionTable{
-		conn: conn,
+		db: db,
 	}
 }
 
@@ -25,7 +26,7 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Init() error {
 		convectiveOutlookOption		 varchar(255)
 	)`
 
-	err := p.conn.AddTable(query)
+	_, err := p.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -39,7 +40,7 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Create(notificati
 
 	convertedConvectiveOutlookOption := string(convectiveOutlookOption)
 
-	_, err := p.conn.db.Exec(query, notificationId, convertedConvectiveOutlookOption)
+	_, err := p.db.Exec(query, notificationId, convertedConvectiveOutlookOption)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) CreateMany(notifi
 func (p *PostgresUserNotificationConvectiveOutlookOptionTable) GetConvectiveOutlookOptionsForNotificationId(notificationId string) ([]golang.ConvectiveOutlookType, error) {
 	query := `SELECT convectiveOutlookOption FROM userNotificationConvectiveOutlookOption WHERE notificationId = $1`
 
-	row, err := p.conn.db.Query(query, notificationId)
+	row, err := p.db.Query(query, notificationId)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +87,7 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) GetConvectiveOutl
 func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Delete(notificationId string) error {
 	query := `DELETE FROM userNotificationConvectiveOutlookOption WHERE notificationId = $1`
 
-	exec, err := p.conn.db.Exec(query, notificationId)
+	exec, err := p.db.Exec(query, notificationId)
 	if err != nil {
 		return err
 	}

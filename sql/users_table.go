@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/cmeyer18/weather-common/v3/data_structures"
 	"strconv"
@@ -9,20 +10,20 @@ import (
 var _ PostgresTable[data_structures.UserNotification] = (*PostgresUserNotificationTable)(nil)
 
 type PostgresUserNotificationTable struct {
-	conn                          Connection
+	db                            *sql.DB
 	alertOptionsTable             PostgresUserNotificationAlertOptionTable
 	convectiveOutlookOptionsTable PostgresUserNotificationConvectiveOutlookOptionTable
 }
 
-func NewPostgresUserNotificationTable(conn Connection) PostgresUserNotificationTable {
+func NewPostgresUserNotificationTable(db *sql.DB) PostgresUserNotificationTable {
 	return PostgresUserNotificationTable{
-		conn: conn,
+		db: db,
 	}
 }
 
 func (p *PostgresUserNotificationTable) Init() error {
-	p.alertOptionsTable = NewPostgresUserNotificationsAlertOptionsTable(p.conn)
-	p.convectiveOutlookOptionsTable = NewPostgresUserNotificationConvectiveOutlookOptionTable(p.conn)
+	p.alertOptionsTable = NewPostgresUserNotificationsAlertOptionsTable(p.db)
+	p.convectiveOutlookOptionsTable = NewPostgresUserNotificationConvectiveOutlookOptionTable(p.db)
 
 	err := p.alertOptionsTable.Init()
 	if err != nil {
@@ -48,7 +49,7 @@ func (p *PostgresUserNotificationTable) Init() error {
 		locationName		 varchar(255)
 	)`
 
-	err = p.conn.AddTable(query)
+	_, err = p.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -60,7 +61,7 @@ func (p *PostgresUserNotificationTable) Create(userNotification data_structures.
 	//language=SQL
 	query := `INSERT INTO userNotification (notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
-	_, err := p.conn.db.Exec(
+	_, err := p.db.Exec(
 		query,
 		userNotification.NotificationId,
 		userNotification.UserID,
@@ -95,7 +96,7 @@ func (p *PostgresUserNotificationTable) Get(notificationId string) (*data_struct
 
 	userNotification := data_structures.UserNotification{}
 
-	row := p.conn.db.QueryRow(query, notificationId)
+	row := p.db.QueryRow(query, notificationId)
 
 	err := row.Scan(&userNotification.NotificationId,
 		&userNotification.UserID,
@@ -132,7 +133,7 @@ func (p *PostgresUserNotificationTable) Get(notificationId string) (*data_struct
 func (p *PostgresUserNotificationTable) GetAll() ([]data_structures.UserNotification, error) {
 	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification`
 
-	row, err := p.conn.db.Query(query)
+	row, err := p.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +179,7 @@ func (p *PostgresUserNotificationTable) GetAll() ([]data_structures.UserNotifica
 func (p *PostgresUserNotificationTable) GetByUserId(userId string) ([]data_structures.UserNotification, error) {
 	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE userId = $1`
 
-	row, err := p.conn.db.Query(query, userId)
+	row, err := p.db.Query(query, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +229,7 @@ func (p *PostgresUserNotificationTable) GetByCodes(codes []string) ([]data_struc
 
 		userNotification := data_structures.UserNotification{}
 
-		row := p.conn.db.QueryRow(query, code)
+		row := p.db.QueryRow(query, code)
 
 		err := row.Scan(&userNotification.NotificationId,
 			&userNotification.UserID,
@@ -264,7 +265,7 @@ func (p *PostgresUserNotificationTable) GetByCodes(codes []string) ([]data_struc
 func (p *PostgresUserNotificationTable) GetNotificationsWithConvectiveOutlookOptions() ([]data_structures.UserNotification, error) {
 	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE notificationId = $1`
 
-	rows, err := p.conn.db.Query(query)
+	rows, err := p.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +311,7 @@ func (p *PostgresUserNotificationTable) GetNotificationsWithConvectiveOutlookOpt
 func (p *PostgresUserNotificationTable) Delete(notificationId string) error {
 	query := `DELETE FROM userNotification WHERE notificationId = $1`
 
-	exec, err := p.conn.db.Exec(query, notificationId)
+	exec, err := p.db.Exec(query, notificationId)
 	if err != nil {
 		return err
 	}

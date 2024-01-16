@@ -12,12 +12,12 @@ import (
 var _ PostgresTable[data_structures.ConvectiveOutlook] = (*PostgresConvectiveOutlookTable)(nil)
 
 type PostgresConvectiveOutlookTable struct {
-	conn Connection
+	db *sql.DB
 }
 
-func NewPostgresConvectiveOutlookTable(conn Connection) PostgresConvectiveOutlookTable {
+func NewPostgresConvectiveOutlookTable(db *sql.DB) PostgresConvectiveOutlookTable {
 	return PostgresConvectiveOutlookTable{
-		conn: conn,
+		db: db,
 	}
 }
 
@@ -28,7 +28,7 @@ func (p *PostgresConvectiveOutlookTable) Init() error {
 		outlook		  jsonb
 	)`
 
-	err := p.conn.AddTable(query)
+	_, err := p.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (p *PostgresConvectiveOutlookTable) Create(outlook *data_structures.Convect
 		return err
 	}
 
-	_, err = p.conn.db.Exec(query, outlook.OutlookType, marshalledOutlook)
+	_, err = p.db.Exec(query, outlook.OutlookType, marshalledOutlook)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (p *PostgresConvectiveOutlookTable) Create(outlook *data_structures.Convect
 func (p *PostgresConvectiveOutlookTable) Find(publishedTime time.Time, outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
 	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlookType = $1`
 
-	row := p.conn.db.QueryRow(query, publishedTime, string(outlookType))
+	row := p.db.QueryRow(query, publishedTime, string(outlookType))
 
 	var rawOutlook []byte
 	err := row.Scan(&rawOutlook)
@@ -77,7 +77,7 @@ func (p *PostgresConvectiveOutlookTable) Find(publishedTime time.Time, outlookTy
 func (p *PostgresConvectiveOutlookTable) FindLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
 	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlooktype = $1 ORDER BY (outlook->'features'->0->'properties'->>'VALID')::timestamptz DESC LIMIT 1`
 
-	row := p.conn.db.QueryRow(query, string(outlookType))
+	row := p.db.QueryRow(query, string(outlookType))
 
 	var rawOutlook []byte
 	err := row.Scan(&rawOutlook)

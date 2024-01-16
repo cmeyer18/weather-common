@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/cmeyer18/weather-common/v3/generative/golang"
 	"strconv"
@@ -9,12 +10,12 @@ import (
 var _ PostgresTable[string] = (*PostgresUserNotificationAlertOptionTable)(nil)
 
 type PostgresUserNotificationAlertOptionTable struct {
-	conn Connection
+	db *sql.DB
 }
 
-func NewPostgresUserNotificationsAlertOptionsTable(conn Connection) PostgresUserNotificationAlertOptionTable {
+func NewPostgresUserNotificationsAlertOptionsTable(db *sql.DB) PostgresUserNotificationAlertOptionTable {
 	return PostgresUserNotificationAlertOptionTable{
-		conn: conn,
+		db: db,
 	}
 }
 
@@ -25,7 +26,7 @@ func (p *PostgresUserNotificationAlertOptionTable) Init() error {
 		alertOption		 varchar(255)
 	)`
 
-	err := p.conn.AddTable(query)
+	_, err := p.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -39,7 +40,7 @@ func (p *PostgresUserNotificationAlertOptionTable) Create(notificationId string,
 
 	convertedAlertOption := string(alertOption)
 
-	_, err := p.conn.db.Exec(query, notificationId, convertedAlertOption)
+	_, err := p.db.Exec(query, notificationId, convertedAlertOption)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func (p *PostgresUserNotificationAlertOptionTable) CreateMany(notificationId str
 func (p *PostgresUserNotificationAlertOptionTable) GetAlertOptionsForNotificationId(notificationId string) ([]golang.AlertType, error) {
 	query := `SELECT alertOption FROM userNotificationAlertOption WHERE notificationId = $1`
 
-	row, err := p.conn.db.Query(query, notificationId)
+	row, err := p.db.Query(query, notificationId)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +87,7 @@ func (p *PostgresUserNotificationAlertOptionTable) GetAlertOptionsForNotificatio
 func (p *PostgresUserNotificationAlertOptionTable) Delete(notificationId string) error {
 	query := `DELETE FROM userNotificationAlertOption WHERE notificationId = $1`
 
-	exec, err := p.conn.db.Exec(query, notificationId)
+	exec, err := p.db.Exec(query, notificationId)
 	if err != nil {
 		return err
 	}
