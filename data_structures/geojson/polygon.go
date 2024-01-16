@@ -1,46 +1,8 @@
 package geojson
 
-import (
-	"errors"
-	"fmt"
-)
-
 type Polygon struct {
-	OuterPath  *MultiPoint   `json:"outerPath" bson:"outerPath"`
-	InnerPaths []*MultiPoint `json:"innerPaths,omitempty" bson:"innerPaths"`
-}
-
-func parsePolygon(polygon interface{}) (*Polygon, error) {
-	rawMultiPoints, ok := polygon.([]interface{})
-	if !ok {
-		return nil, fmt.Errorf("not a valid MultiPoint, got %v", rawMultiPoints)
-	}
-
-	if len(rawMultiPoints) == 0 {
-		return nil, errors.New("MultiPoint contains no Points ")
-	}
-
-	var outerPath *MultiPoint
-	var innerPaths []*MultiPoint
-	for i, point := range rawMultiPoints {
-		parsedMultiPoint, err := parseMultiPoint(point)
-		if err != nil {
-			return nil, err
-		}
-
-		if i == 0 {
-			outerPath = parsedMultiPoint
-		} else {
-			innerPaths = append(innerPaths, parsedMultiPoint)
-		}
-	}
-
-	p := Polygon{
-		OuterPath:  outerPath,
-		InnerPaths: innerPaths,
-	}
-
-	return &p, nil
+	OuterPath  *MultiPoint   `json:"outerPath"`
+	InnerPaths []*MultiPoint `json:"innerPaths,omitempty"`
 }
 
 func NewPolygonShape(outerPath *MultiPoint, innerPaths []*MultiPoint) *Polygon {
