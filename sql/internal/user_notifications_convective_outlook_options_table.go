@@ -1,4 +1,4 @@
-package sql
+package internal
 
 import (
 	"database/sql"
@@ -7,7 +7,17 @@ import (
 	"strconv"
 )
 
-var _ PostgresTable[string] = (*PostgresUserNotificationConvectiveOutlookOptionTable)(nil)
+var _ IUserNotificationConvectiveOutlookOptionTable = (*PostgresUserNotificationConvectiveOutlookOptionTable)(nil)
+
+type IUserNotificationConvectiveOutlookOptionTable interface {
+	Init() error
+
+	Insert(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error
+
+	SelectByNotificationId(notificationId string) ([]golang.ConvectiveOutlookType, error)
+
+	Delete(notificationId string) error
+}
 
 type PostgresUserNotificationConvectiveOutlookOptionTable struct {
 	db *sql.DB
@@ -34,7 +44,7 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Init() error {
 	return nil
 }
 
-func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Create(notificationId string, convectiveOutlookOption golang.ConvectiveOutlookType) error {
+func (p *PostgresUserNotificationConvectiveOutlookOptionTable) insert(notificationId string, convectiveOutlookOption golang.ConvectiveOutlookType) error {
 	//language=SQL
 	query := `INSERT INTO userNotificationConvectiveOutlookOption (notificationId, convectiveOutlookOption) VALUES ($1, $2)`
 
@@ -48,9 +58,9 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Create(notificati
 	return nil
 }
 
-func (p *PostgresUserNotificationConvectiveOutlookOptionTable) CreateMany(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error {
+func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Insert(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error {
 	for _, convectiveOutlookOption := range convectiveOutlookOptions {
-		err := p.Create(notificationId, convectiveOutlookOption)
+		err := p.insert(notificationId, convectiveOutlookOption)
 		if err != nil {
 			return err
 		}
@@ -59,7 +69,7 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) CreateMany(notifi
 	return nil
 }
 
-func (p *PostgresUserNotificationConvectiveOutlookOptionTable) GetConvectiveOutlookOptionsForNotificationId(notificationId string) ([]golang.ConvectiveOutlookType, error) {
+func (p *PostgresUserNotificationConvectiveOutlookOptionTable) SelectByNotificationId(notificationId string) ([]golang.ConvectiveOutlookType, error) {
 	query := `SELECT convectiveOutlookOption FROM userNotificationConvectiveOutlookOption WHERE notificationId = $1`
 
 	row, err := p.db.Query(query, notificationId)

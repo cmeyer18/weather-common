@@ -1,4 +1,4 @@
-package sql
+package internal
 
 import (
 	"database/sql"
@@ -7,7 +7,17 @@ import (
 	"strconv"
 )
 
-var _ PostgresTable[string] = (*PostgresUserNotificationAlertOptionTable)(nil)
+var _ IUserNotificationAlertOptionTable = (*PostgresUserNotificationAlertOptionTable)(nil)
+
+type IUserNotificationAlertOptionTable interface {
+	Init() error
+
+	Insert(notificationId string, alertOptions []golang.AlertType) error
+
+	SelectByNotificationId(notificationId string) ([]golang.AlertType, error)
+
+	Delete(notificationId string) error
+}
 
 type PostgresUserNotificationAlertOptionTable struct {
 	db *sql.DB
@@ -34,7 +44,7 @@ func (p *PostgresUserNotificationAlertOptionTable) Init() error {
 	return nil
 }
 
-func (p *PostgresUserNotificationAlertOptionTable) Create(notificationId string, alertOption golang.AlertType) error {
+func (p *PostgresUserNotificationAlertOptionTable) insert(notificationId string, alertOption golang.AlertType) error {
 	//language=SQL
 	query := `INSERT INTO userNotificationAlertOption (notificationId, alertOption) VALUES ($1, $2)`
 
@@ -48,9 +58,9 @@ func (p *PostgresUserNotificationAlertOptionTable) Create(notificationId string,
 	return nil
 }
 
-func (p *PostgresUserNotificationAlertOptionTable) CreateMany(notificationId string, alertOptions []golang.AlertType) error {
+func (p *PostgresUserNotificationAlertOptionTable) Insert(notificationId string, alertOptions []golang.AlertType) error {
 	for _, alertOption := range alertOptions {
-		err := p.Create(notificationId, alertOption)
+		err := p.insert(notificationId, alertOption)
 		if err != nil {
 			return err
 		}
@@ -59,7 +69,7 @@ func (p *PostgresUserNotificationAlertOptionTable) CreateMany(notificationId str
 	return nil
 }
 
-func (p *PostgresUserNotificationAlertOptionTable) GetAlertOptionsForNotificationId(notificationId string) ([]golang.AlertType, error) {
+func (p *PostgresUserNotificationAlertOptionTable) SelectByNotificationId(notificationId string) ([]golang.AlertType, error) {
 	query := `SELECT alertOption FROM userNotificationAlertOption WHERE notificationId = $1`
 
 	row, err := p.db.Query(query, notificationId)
