@@ -5,13 +5,33 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/cmeyer18/weather-common/v3/data_structures"
+	"github.com/cmeyer18/weather-common/v3/sql/internal/common_tables"
 	"log"
 	"strconv"
 
 	"github.com/lib/pq"
 )
 
-var _ PostgresTable[data_structures.Alert] = (*PostgresAlertTable)(nil)
+var _ IAlertTable = (*PostgresAlertTable)(nil)
+
+type IAlertTable interface {
+	common_tables.IIdTable[data_structures.Alert]
+
+	// Deprecated: use Select
+	Find(id string) (*data_structures.Alert, error)
+
+	// Deprecated: use Insert
+	Create(alert *data_structures.Alert) error
+
+	// Deprecated: use SelectAlertsByCode
+	FindAlertsByCode(codes []string) ([]data_structures.Alert, error)
+
+	SelectAlertsByCode(codes []string) ([]data_structures.Alert, error)
+
+	DeleteExpiredAlerts(id string) error
+
+	Exists(id string) (bool, error)
+}
 
 type PostgresAlertTable struct {
 	db *sql.DB
@@ -38,6 +58,24 @@ func (p *PostgresAlertTable) Init() error {
 	return nil
 }
 
+func (p *PostgresAlertTable) Insert(alert data_structures.Alert) error {
+	//language=SQL
+	query := `INSERT INTO alerts (id, payload) VALUES ($1, $2)`
+
+	marshalledAlert, err := json.Marshal(alert)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.db.Exec(query, alert.ID, marshalledAlert)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Deprecated: use Insert
 func (p *PostgresAlertTable) Create(alert *data_structures.Alert) error {
 	//language=SQL
 	query := `INSERT INTO alerts (id, payload) VALUES ($1, $2)`
@@ -55,7 +93,7 @@ func (p *PostgresAlertTable) Create(alert *data_structures.Alert) error {
 	return nil
 }
 
-func (p *PostgresAlertTable) Find(id string) (*data_structures.Alert, error) {
+func (p *PostgresAlertTable) Select(id string) (*data_structures.Alert, error) {
 	query := `SELECT payload FROM alerts WHERE id = $1`
 
 	row := p.db.QueryRow(query, id)
@@ -74,7 +112,7 @@ func (p *PostgresAlertTable) Find(id string) (*data_structures.Alert, error) {
 	return &alert, nil
 }
 
-func (p *PostgresAlertTable) FindAlertsByCode(codes []string) ([]data_structures.Alert, error) {
+func (p *PostgresAlertTable) SelectAlertsByCode(codes []string) ([]data_structures.Alert, error) {
 	query := `
 		SELECT payload
 		FROM alerts
@@ -111,6 +149,16 @@ func (p *PostgresAlertTable) FindAlertsByCode(codes []string) ([]data_structures
 	}
 
 	return alerts, nil
+}
+
+// Deprecated: use Select
+func (p *PostgresAlertTable) Find(id string) (*data_structures.Alert, error) {
+	return p.Select(id)
+}
+
+// Deprecated: use SelectAlertsByCode
+func (p *PostgresAlertTable) FindAlertsByCode(codes []string) ([]data_structures.Alert, error) {
+	return p.SelectAlertsByCode(codes)
 }
 
 func (p *PostgresAlertTable) Exists(id string) (bool, error) {
