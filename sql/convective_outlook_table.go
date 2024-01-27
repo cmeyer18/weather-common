@@ -71,6 +71,7 @@ func (p *PostgresConvectiveOutlookTable) Insert(outlook data_structures.Convecti
 	return nil
 }
 
+// Deprecated: use Insert
 func (p *PostgresConvectiveOutlookTable) Create(outlook *data_structures.ConvectiveOutlook) error {
 	//language=SQL
 	query := `INSERT INTO convectiveOutlookTable (outlookType, outlook) VALUES ($1, $2)`
