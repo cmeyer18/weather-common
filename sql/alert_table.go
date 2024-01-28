@@ -117,6 +117,7 @@ func (p *PostgresAlertTable) SelectAlertsByCode(codes []string) ([]data_structur
 		SELECT payload
 		FROM alerts
 		WHERE 
+		    (alerts.payload->'properties' ->> 'ends')::timestamptz >= NOW() AND
 		    alerts.payload->'properties'->'geocode'->'UGC' IS NOT NULL
 			AND EXISTS (
 				SELECT 1
