@@ -44,6 +44,7 @@ jobs:
 
       - name: Build docker image
         run: docker build . -t cdmeyer/weather-db-migrations:${{github.run_number}}
+        working-directory: sql/db_migrations
 
       - name: Create docker tags
         if: github.ref == 'refs/heads/master'
