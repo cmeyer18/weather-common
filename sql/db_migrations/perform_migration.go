@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"github.com/cmeyer18/weather-common/v3/sql/db_migrations/enviornment"
+	"github.com/cmeyer18/weather-common/v3/sql/db_migrations/v3/enviornment"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
