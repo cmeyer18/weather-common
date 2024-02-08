@@ -1,6 +1,7 @@
 package common_tables
 
 type IIdTable[T any] interface {
+	// Deprecated: use the weather-db-migrator docker images for setup
 	Init() error
 
 	Insert(item T) error

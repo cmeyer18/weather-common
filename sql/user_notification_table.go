@@ -48,36 +48,18 @@ type PostgresUserNotificationTable struct {
 }
 
 func NewPostgresUserNotificationTable(db *sql.DB) PostgresUserNotificationTable {
+	alertOptionsTable := internal.NewPostgresUserNotificationsAlertOptionsTable(db)
+	convectiveOutlookOptionsTable := internal.NewPostgresUserNotificationConvectiveOutlookOptionTable(db)
+
 	return PostgresUserNotificationTable{
-		db: db,
+		db:                            db,
+		alertOptionsTable:             &alertOptionsTable,
+		convectiveOutlookOptionsTable: &convectiveOutlookOptionsTable,
 	}
 }
 
+// Deprecated: use the weather-db-migrator docker images for setup
 func (p *PostgresUserNotificationTable) Init() error {
-	alertOptionsTable := internal.NewPostgresUserNotificationsAlertOptionsTable(p.db)
-	convectiveOutlookOptionsTable := internal.NewPostgresUserNotificationConvectiveOutlookOptionTable(p.db)
-
-	p.alertOptionsTable = &alertOptionsTable
-	p.convectiveOutlookOptionsTable = &convectiveOutlookOptionsTable
-
-	err := p.alertOptionsTable.Init()
-	if err != nil {
-		return err
-	}
-
-	err = p.convectiveOutlookOptionsTable.Init()
-	if err != nil {
-		return err
-	}
-
-	//language=SQL
-	query := ``
-
-	_, err = p.db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

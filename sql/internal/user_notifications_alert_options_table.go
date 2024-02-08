@@ -10,8 +10,6 @@ import (
 var _ IUserNotificationAlertOptionTable = (*PostgresUserNotificationAlertOptionTable)(nil)
 
 type IUserNotificationAlertOptionTable interface {
-	Init() error
-
 	Insert(notificationId string, alertOptions []golang.AlertType) error
 
 	SelectByNotificationId(notificationId string) ([]golang.AlertType, error)
@@ -27,18 +25,6 @@ func NewPostgresUserNotificationsAlertOptionsTable(db *sql.DB) PostgresUserNotif
 	return PostgresUserNotificationAlertOptionTable{
 		db: db,
 	}
-}
-
-func (p *PostgresUserNotificationAlertOptionTable) Init() error {
-	//language=SQL
-	query := ``
-
-	_, err := p.db.Exec(query)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (p *PostgresUserNotificationAlertOptionTable) insert(notificationId string, alertOption golang.AlertType) error {

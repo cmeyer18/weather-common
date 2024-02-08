@@ -12,8 +12,6 @@ import (
 var _ IPostgresMesoscaleDiscussionTable = (*PostgresMesoscaleDiscussionTable)(nil)
 
 type IPostgresMesoscaleDiscussionTable interface {
-	Init() error
-
 	Insert(md data_structures.MesoscaleDiscussion) error
 
 	Select(mdNumber int, year int) (*data_structures.MesoscaleDiscussion, error)
@@ -29,18 +27,6 @@ func NewPostgresMesoscaleDicussionTable(db *sql.DB) PostgresMesoscaleDiscussionT
 	return PostgresMesoscaleDiscussionTable{
 		db: db,
 	}
-}
-
-func (p *PostgresMesoscaleDiscussionTable) Init() error {
-	//language=SQL
-	query := ``
-
-	_, err := p.db.Exec(query)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (p *PostgresMesoscaleDiscussionTable) Insert(md data_structures.MesoscaleDiscussion) error {
@@ -108,7 +94,7 @@ func (p *PostgresMesoscaleDiscussionTable) SelectMDNotInTable(year int, mdsToChe
 	}
 
 	var mdsNotInTable []int
-	for md, _ := range mdsToCheck {
+	for md := range mdsToCheck {
 		if !mdInTable[md] {
 			mdsNotInTable = append(mdsNotInTable, md)
 		}

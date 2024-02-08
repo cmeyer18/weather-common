@@ -43,15 +43,8 @@ func NewPostgresAlertTable(db *sql.DB) PostgresAlertTable {
 	}
 }
 
+// Deprecated: use the weather-db-migrator docker images for setup
 func (p *PostgresAlertTable) Init() error {
-	//language=SQL
-	query := ``
-
-	_, err := p.db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
