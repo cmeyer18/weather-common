@@ -31,10 +31,7 @@ func NewPostgresUserNotificationsAlertOptionsTable(db *sql.DB) PostgresUserNotif
 
 func (p *PostgresUserNotificationAlertOptionTable) Init() error {
 	//language=SQL
-	query := `CREATE TABLE IF NOT EXISTS userNotificationAlertOption(
-		notificationId       varchar(255) primary key,
-		alertOption		 varchar(255)
-	)`
+	query := ``
 
 	_, err := p.db.Exec(query)
 	if err != nil {

@@ -31,10 +31,7 @@ func NewPostgresUserNotificationConvectiveOutlookOptionTable(db *sql.DB) Postgre
 
 func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Init() error {
 	//language=SQL
-	query := `CREATE TABLE IF NOT EXISTS userNotificationConvectiveOutlookOption(
-		notificationId               varchar(255) primary key,
-		convectiveOutlookOption		 varchar(255)
-	)`
+	query := ``
 
 	_, err := p.db.Exec(query)
 	if err != nil {

@@ -42,10 +42,7 @@ func NewPostgresConvectiveOutlookTable(db *sql.DB) PostgresConvectiveOutlookTabl
 
 func (p *PostgresConvectiveOutlookTable) Init() error {
 	//language=SQL
-	query := `CREATE TABLE IF NOT EXISTS convectiveOutlookTable(
-		outlookType   varchar(225),
-		outlook		  jsonb
-	)`
+	query := ``
 
 	_, err := p.db.Exec(query)
 	if err != nil {
