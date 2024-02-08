@@ -51,7 +51,7 @@ jobs:
       - name: Create docker tags
         if: github.ref == 'refs/heads/master'
         run: |
-          docker tag cdmeyer/weather-db-migrations:${{github.run_number}} cdmeyer/weather-db-migrations:${{ needs.build.output.version }}
+          docker tag cdmeyer/weather-db-migrations:${{github.run_number}} cdmeyer/weather-db-migrations:${{ needs.build.outputs.version }}
           docker tag cdmeyer/weather-db-migrations:${{github.run_number}} cdmeyer/weather-db-migrations:latest-release
 
       - name: Push build tag
@@ -60,5 +60,5 @@ jobs:
       - name: Push release tags
         if: github.ref == 'refs/heads/master'
         run: |
-          docker push cdmeyer/weather-db-migrations:${{ needs.build.output.version }}
+          docker push cdmeyer/weather-db-migrations:${{ needs.build.outputs.version }}
           docker push cdmeyer/weather-db-migrations:latest-release
