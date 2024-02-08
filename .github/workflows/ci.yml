@@ -28,3 +28,35 @@ jobs:
       - name: Build weather-common
         run: go build ./...
 
+  build-weather-db-migration:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Login to docker
+        uses: docker/login-action@v3.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build docker image
+        run: docker build . -t cdmeyer/weather-db-migrations:${{github.run_number}}
+        working-directory: sql/db_migrations
+
+      - name: Create docker tags
+        if: github.ref == 'refs/heads/master'
+        run: |
+          docker tag cdmeyer/weather-db-migrations:${{github.run_number}} cdmeyer/weather-db-migrations:${{ needs.build.release.outputs.version }}
+          docker tag cdmeyer/weather-db-migrations:${{github.run_number}} cdmeyer/weather-db-migrations:latest-release
+
+      - name: Push build tag
+        run: docker push cdmeyer/weather-db-migrations:${{github.run_number}}
+
+      - name: Push release tags
+        if: github.ref == 'refs/heads/master'
+        run: |
+          docker push cdmeyer/weather-db-migrations:${{ needs.build.release.outputs.version }}
+          docker push cdmeyer/weather-db-migrations:latest-release

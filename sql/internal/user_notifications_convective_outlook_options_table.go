@@ -10,8 +10,6 @@ import (
 var _ IUserNotificationConvectiveOutlookOptionTable = (*PostgresUserNotificationConvectiveOutlookOptionTable)(nil)
 
 type IUserNotificationConvectiveOutlookOptionTable interface {
-	Init() error
-
 	Insert(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error
 
 	SelectByNotificationId(notificationId string) ([]golang.ConvectiveOutlookType, error)
@@ -27,21 +25,6 @@ func NewPostgresUserNotificationConvectiveOutlookOptionTable(db *sql.DB) Postgre
 	return PostgresUserNotificationConvectiveOutlookOptionTable{
 		db: db,
 	}
-}
-
-func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Init() error {
-	//language=SQL
-	query := `CREATE TABLE IF NOT EXISTS userNotificationConvectiveOutlookOption(
-		notificationId               varchar(255) primary key,
-		convectiveOutlookOption		 varchar(255)
-	)`
-
-	_, err := p.db.Exec(query)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (p *PostgresUserNotificationConvectiveOutlookOptionTable) insert(notificationId string, convectiveOutlookOption golang.ConvectiveOutlookType) error {

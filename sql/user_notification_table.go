@@ -48,47 +48,18 @@ type PostgresUserNotificationTable struct {
 }
 
 func NewPostgresUserNotificationTable(db *sql.DB) PostgresUserNotificationTable {
+	alertOptionsTable := internal.NewPostgresUserNotificationsAlertOptionsTable(db)
+	convectiveOutlookOptionsTable := internal.NewPostgresUserNotificationConvectiveOutlookOptionTable(db)
+
 	return PostgresUserNotificationTable{
-		db: db,
+		db:                            db,
+		alertOptionsTable:             &alertOptionsTable,
+		convectiveOutlookOptionsTable: &convectiveOutlookOptionsTable,
 	}
 }
 
+// Deprecated: use the weather-db-migrator docker images for setup
 func (p *PostgresUserNotificationTable) Init() error {
-	alertOptionsTable := internal.NewPostgresUserNotificationsAlertOptionsTable(p.db)
-	convectiveOutlookOptionsTable := internal.NewPostgresUserNotificationConvectiveOutlookOptionTable(p.db)
-
-	p.alertOptionsTable = &alertOptionsTable
-	p.convectiveOutlookOptionsTable = &convectiveOutlookOptionsTable
-
-	err := p.alertOptionsTable.Init()
-	if err != nil {
-		return err
-	}
-
-	err = p.convectiveOutlookOptionsTable.Init()
-	if err != nil {
-		return err
-	}
-
-	//language=SQL
-	query := `CREATE TABLE IF NOT EXISTS userNotification(
-		notificationId       varchar(255) primary key,
-		userId				 varchar(255),
-		zoneCode			 varchar(255),
-		countyCode			 varchar(255),
-		creationTime		 timestamptz,
-		lat					 float,
-		lng					 float,
-		formattedAddress	 varchar(500),
-		apnKey				 varchar(255),
-		locationName		 varchar(255)
-	)`
-
-	_, err = p.db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

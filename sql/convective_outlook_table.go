@@ -12,6 +12,7 @@ import (
 var _ IConvectiveOutlookTable = (*PostgresConvectiveOutlookTable)(nil)
 
 type IConvectiveOutlookTable interface {
+	// Deprecated: use the weather-db-migrator docker images for setup
 	Init() error
 
 	// Deprecated: use Insert
@@ -40,18 +41,8 @@ func NewPostgresConvectiveOutlookTable(db *sql.DB) PostgresConvectiveOutlookTabl
 	}
 }
 
+// Deprecated: use the weather-db-migrator docker images for setup
 func (p *PostgresConvectiveOutlookTable) Init() error {
-	//language=SQL
-	query := `CREATE TABLE IF NOT EXISTS convectiveOutlookTable(
-		outlookType   varchar(225),
-		outlook		  jsonb
-	)`
-
-	_, err := p.db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
