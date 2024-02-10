@@ -279,6 +279,7 @@ func (p *PostgresUserNotificationTable) SelectByUserId(userId string) ([]data_st
 			&userNotification.FormattedAddress,
 			&userNotification.APNKey,
 			&userNotification.LocationName,
+			&userNotification.MesoscaleDiscussionNotifications,
 		)
 		if err != nil {
 			return nil, err
