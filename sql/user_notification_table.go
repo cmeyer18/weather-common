@@ -38,6 +38,8 @@ type IUserNotificationTable interface {
 	// Deprecated: use SelectNotificationsWithConvectiveOutlook
 	GetNotificationsWithConvectiveOutlookOptions() ([]data_structures.UserNotification, error)
 
+	SelectNotificationsWithMDNotifications() ([]data_structures.UserNotification, error)
+
 	SelectNotificationsWithConvectiveOutlook() ([]data_structures.UserNotification, error)
 }
 
@@ -65,7 +67,21 @@ func (p *PostgresUserNotificationTable) Init() error {
 
 func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.UserNotification) error {
 	//language=SQL
-	query := `INSERT INTO userNotification (notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+	query := `
+	INSERT INTO userNotification (
+	  	notificationId, 
+	  	userId, 
+	  	zoneCode, 
+	  	countyCode, 
+	  	creationTime, 
+	  	lat, 
+		lng, 
+	  	formattedAddress, 
+		apnKey, 
+	  	locationName, 
+	  	mesoscaleDiscussionNotifications
+	) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
 
 	_, err := p.db.Exec(
 		query,
@@ -79,6 +95,7 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 		userNotification.FormattedAddress,
 		userNotification.APNKey,
 		userNotification.LocationName,
+		userNotification.MesoscaleDiscussionNotifications,
 	)
 	if err != nil {
 		return err
@@ -103,7 +120,21 @@ func (p *PostgresUserNotificationTable) Create(userNotification data_structures.
 }
 
 func (p *PostgresUserNotificationTable) Select(id string) (*data_structures.UserNotification, error) {
-	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE notificationId = $1`
+	query := `
+	SELECT 
+		notificationId, 
+		userId, 
+		zoneCode,
+		countyCode, 
+		creationTime, 
+		lat, 
+		lng, 
+		formattedAddress, 
+		apnKey, 
+		locationName,
+		mesoscaleDiscussionNotifications
+	FROM userNotification 
+	WHERE notificationId = $1`
 
 	userNotification := data_structures.UserNotification{}
 
@@ -119,6 +150,7 @@ func (p *PostgresUserNotificationTable) Select(id string) (*data_structures.User
 		&userNotification.FormattedAddress,
 		&userNotification.APNKey,
 		&userNotification.LocationName,
+		&userNotification.MesoscaleDiscussionNotifications,
 	)
 
 	convectiveOptions, err := p.convectiveOutlookOptionsTable.SelectByNotificationId(id)
@@ -147,7 +179,21 @@ func (p *PostgresUserNotificationTable) Get(notificationId string) (*data_struct
 }
 
 func (p *PostgresUserNotificationTable) SelectAll() ([]data_structures.UserNotification, error) {
-	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification`
+	query := `
+	SELECT 
+	    notificationId, 
+	    userId, 
+	    zoneCode,
+	    countyCode,
+	    creationTime, 
+	    lat,
+	    lng, 
+	    formattedAddress,
+	    apnKey,
+	    locationName,
+		mesoscaleDiscussionNotifications
+	FROM userNotification
+`
 
 	row, err := p.db.Query(query)
 	if err != nil {
@@ -168,6 +214,7 @@ func (p *PostgresUserNotificationTable) SelectAll() ([]data_structures.UserNotif
 			&userNotification.FormattedAddress,
 			&userNotification.APNKey,
 			&userNotification.LocationName,
+			&userNotification.MesoscaleDiscussionNotifications,
 		)
 		if err != nil {
 			return nil, err
@@ -198,7 +245,20 @@ func (p *PostgresUserNotificationTable) GetAll() ([]data_structures.UserNotifica
 }
 
 func (p *PostgresUserNotificationTable) SelectByUserId(userId string) ([]data_structures.UserNotification, error) {
-	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE userId = $1`
+	query := `
+	SELECT 
+	    notificationId, 
+	    userId,
+	    zoneCode, 
+	    countyCode,
+	    creationTime,
+	    lat, 
+	    lng,
+	    formattedAddress,
+	    apnKey, 
+	    locationName,
+		mesoscaleDiscussionNotifications
+	FROM userNotification WHERE userId = $1`
 
 	row, err := p.db.Query(query, userId)
 	if err != nil {
@@ -251,7 +311,19 @@ func (p *PostgresUserNotificationTable) GetByUserId(userId string) ([]data_struc
 func (p *PostgresUserNotificationTable) SelectByCodes(codes []string) ([]data_structures.UserNotification, error) {
 	var userNotifications []data_structures.UserNotification
 	for _, code := range codes {
-		query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE zoneCode = $1 OR countyCode = $1`
+		query := `
+		SELECT 
+		    notificationId, 
+		    userId, 
+		    zoneCode, 
+		    countyCode, 
+		    creationTime,
+		    lat, 
+		    lng, 
+		    formattedAddress,
+		    apnKey, 
+		    locationName 
+		FROM userNotification WHERE zoneCode = $1 OR countyCode = $1`
 
 		userNotification := data_structures.UserNotification{}
 
@@ -294,7 +366,19 @@ func (p *PostgresUserNotificationTable) GetByCodes(codes []string) ([]data_struc
 }
 
 func (p *PostgresUserNotificationTable) SelectNotificationsWithConvectiveOutlook() ([]data_structures.UserNotification, error) {
-	query := `SELECT notificationId, userId, zoneCode, countyCode, creationTime, lat, lng, formattedAddress, apnKey, locationName FROM userNotification WHERE notificationId = $1`
+	query := `
+	SELECT 
+	    notificationId, 
+	    userId, 
+	    zoneCode, 
+	    countyCode, 
+	    creationTime, 
+	    lat, 
+	    lng, 
+	    formattedAddress, 
+	    apnKey, 
+	    locationName 
+	FROM userNotification WHERE notificationId = $1`
 
 	rows, err := p.db.Query(query)
 	if err != nil {
@@ -342,6 +426,55 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithConvectiveOutlook
 // Deprecated: use SelectNotificationsWithConvectiveOutlook
 func (p *PostgresUserNotificationTable) GetNotificationsWithConvectiveOutlookOptions() ([]data_structures.UserNotification, error) {
 	return p.SelectNotificationsWithConvectiveOutlook()
+}
+
+// SelectNotificationsWithMDNotifications Selects all of the notifications that want mesoscale discussion notifications.
+// Note this does not fill out AlertOptions or SPCOptions in the returned UserNotifications struct
+func (p *PostgresUserNotificationTable) SelectNotificationsWithMDNotifications() ([]data_structures.UserNotification, error) {
+	query := `
+	SELECT 
+	    notificationId, 
+	    userId, 
+	    zoneCode,
+	    countyCode, 
+	    creationTime, 
+	    lat, 
+	    lng, 
+	    formattedAddress, 
+	    apnKey,
+	    locationName,
+		mesoscaleDiscussionNotifications
+	FROM userNotification WHERE mesoscaleDiscussionNotifications = TRUE`
+
+	rows, err := p.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var userNotifications []data_structures.UserNotification
+	for rows.Next() {
+		userNotification := data_structures.UserNotification{}
+
+		err := rows.Scan(&userNotification.NotificationId,
+			&userNotification.UserID,
+			&userNotification.ZoneCode,
+			&userNotification.CountyCode,
+			&userNotification.CreationTime,
+			&userNotification.Lat,
+			&userNotification.Lng,
+			&userNotification.FormattedAddress,
+			&userNotification.APNKey,
+			&userNotification.LocationName,
+			&userNotification.MesoscaleDiscussionNotifications,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		userNotifications = append(userNotifications, userNotification)
+	}
+
+	return userNotifications, nil
 }
 
 func (p *PostgresUserNotificationTable) Delete(notificationId string) error {
