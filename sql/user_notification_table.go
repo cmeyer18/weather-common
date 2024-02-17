@@ -79,9 +79,10 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 	  	formattedAddress, 
 		apnKey, 
 	  	locationName, 
-	  	mesoscaleDiscussionNotifications
+	  	mesoscaleDiscussionNotifications,
+		liveActivities
 	) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
 	_, err := p.db.Exec(
 		query,
@@ -96,6 +97,7 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 		userNotification.APNKey,
 		userNotification.LocationName,
 		userNotification.MesoscaleDiscussionNotifications,
+		userNotification.LiveActivities,
 	)
 	if err != nil {
 		return err
@@ -132,7 +134,8 @@ func (p *PostgresUserNotificationTable) Select(id string) (*data_structures.User
 		formattedAddress, 
 		apnKey, 
 		locationName,
-		mesoscaleDiscussionNotifications
+		mesoscaleDiscussionNotifications,
+		liveActivities
 	FROM userNotification 
 	WHERE notificationId = $1`
 
@@ -151,6 +154,7 @@ func (p *PostgresUserNotificationTable) Select(id string) (*data_structures.User
 		&userNotification.APNKey,
 		&userNotification.LocationName,
 		&userNotification.MesoscaleDiscussionNotifications,
+		&userNotification.LiveActivities,
 	)
 
 	convectiveOptions, err := p.convectiveOutlookOptionsTable.SelectByNotificationId(id)
@@ -191,7 +195,8 @@ func (p *PostgresUserNotificationTable) SelectAll() ([]data_structures.UserNotif
 	    formattedAddress,
 	    apnKey,
 	    locationName,
-		mesoscaleDiscussionNotifications
+		mesoscaleDiscussionNotifications,
+		liveActivities
 	FROM userNotification
 `
 
@@ -215,6 +220,7 @@ func (p *PostgresUserNotificationTable) SelectAll() ([]data_structures.UserNotif
 			&userNotification.APNKey,
 			&userNotification.LocationName,
 			&userNotification.MesoscaleDiscussionNotifications,
+			&userNotification.LiveActivities,
 		)
 		if err != nil {
 			return nil, err
@@ -257,7 +263,8 @@ func (p *PostgresUserNotificationTable) SelectByUserId(userId string) ([]data_st
 	    formattedAddress,
 	    apnKey, 
 	    locationName,
-		mesoscaleDiscussionNotifications
+		mesoscaleDiscussionNotifications,
+		liveActivities
 	FROM userNotification WHERE userId = $1`
 
 	row, err := p.db.Query(query, userId)
@@ -280,6 +287,7 @@ func (p *PostgresUserNotificationTable) SelectByUserId(userId string) ([]data_st
 			&userNotification.APNKey,
 			&userNotification.LocationName,
 			&userNotification.MesoscaleDiscussionNotifications,
+			&userNotification.LiveActivities,
 		)
 		if err != nil {
 			return nil, err
@@ -323,7 +331,8 @@ func (p *PostgresUserNotificationTable) SelectByCodes(codes []string) ([]data_st
 		    lng, 
 		    formattedAddress,
 		    apnKey, 
-		    locationName 
+		    locationName,
+			liveActivities
 		FROM userNotification WHERE zoneCode = $1 OR countyCode = $1`
 
 		userNotification := data_structures.UserNotification{}
@@ -340,6 +349,7 @@ func (p *PostgresUserNotificationTable) SelectByCodes(codes []string) ([]data_st
 			&userNotification.FormattedAddress,
 			&userNotification.APNKey,
 			&userNotification.LocationName,
+			&userNotification.LiveActivities,
 		)
 
 		convectiveOptions, err := p.convectiveOutlookOptionsTable.SelectByNotificationId(userNotification.NotificationId)
@@ -378,7 +388,8 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithConvectiveOutlook
 	    lng, 
 	    formattedAddress, 
 	    apnKey, 
-	    locationName 
+	    locationName,
+		liveActivities
 	FROM userNotification WHERE notificationId = $1`
 
 	rows, err := p.db.Query(query)
@@ -400,6 +411,7 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithConvectiveOutlook
 			&userNotification.FormattedAddress,
 			&userNotification.APNKey,
 			&userNotification.LocationName,
+			&userNotification.LiveActivities,
 		)
 		if err != nil {
 			return nil, err
@@ -444,7 +456,8 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithMDNotifications()
 	    formattedAddress, 
 	    apnKey,
 	    locationName,
-		mesoscaleDiscussionNotifications
+		mesoscaleDiscussionNotifications,
+		liveActivities
 	FROM userNotification WHERE mesoscaleDiscussionNotifications = TRUE`
 
 	rows, err := p.db.Query(query)
@@ -467,6 +480,7 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithMDNotifications()
 			&userNotification.APNKey,
 			&userNotification.LocationName,
 			&userNotification.MesoscaleDiscussionNotifications,
+			&userNotification.LiveActivities,
 		)
 		if err != nil {
 			return nil, err
