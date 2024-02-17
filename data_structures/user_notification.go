@@ -19,4 +19,5 @@ type UserNotification struct {
 	ConvectiveOutlookOptions         []golang.ConvectiveOutlookType `json:"convectiveOutlookOptions"`
 	AlertOptions                     []golang.AlertType             `json:"alertOptions"`
 	MesoscaleDiscussionNotifications bool                           `json:"mesoscaleDiscussionNotifications"`
+	LiveActivities                   bool                           `json:"liveActivities"`
 }
