@@ -200,49 +200,12 @@ func (p *PostgresUserNotificationTable) SelectAll() ([]data_structures.UserNotif
 	FROM userNotification
 `
 
-	row, err := p.db.Query(query)
+	rows, err := p.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
 
-	var userNotifications []data_structures.UserNotification
-	for row.Next() {
-		userNotification := data_structures.UserNotification{}
-
-		err := row.Scan(&userNotification.NotificationId,
-			&userNotification.UserID,
-			&userNotification.ZoneCode,
-			&userNotification.CountyCode,
-			&userNotification.CreationTime,
-			&userNotification.Lat,
-			&userNotification.Lng,
-			&userNotification.FormattedAddress,
-			&userNotification.APNKey,
-			&userNotification.LocationName,
-			&userNotification.MesoscaleDiscussionNotifications,
-			&userNotification.LiveActivities,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		convectiveOptions, err := p.convectiveOutlookOptionsTable.SelectByNotificationId(userNotification.NotificationId)
-		if err != nil {
-			return nil, err
-		}
-
-		alertOptions, err := p.alertOptionsTable.SelectByNotificationId(userNotification.NotificationId)
-		if err != nil {
-			return nil, err
-		}
-
-		userNotification.ConvectiveOutlookOptions = convectiveOptions
-		userNotification.AlertOptions = alertOptions
-
-		userNotifications = append(userNotifications, userNotification)
-	}
-
-	return userNotifications, nil
+	return p.scanRows(rows, false)
 }
 
 // Deprecated: use SelectAll
@@ -267,49 +230,12 @@ func (p *PostgresUserNotificationTable) SelectByUserId(userId string) ([]data_st
 		liveActivities
 	FROM userNotification WHERE userId = $1`
 
-	row, err := p.db.Query(query, userId)
+	rows, err := p.db.Query(query, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	var userNotifications []data_structures.UserNotification
-	for row.Next() {
-		userNotification := data_structures.UserNotification{}
-
-		err := row.Scan(&userNotification.NotificationId,
-			&userNotification.UserID,
-			&userNotification.ZoneCode,
-			&userNotification.CountyCode,
-			&userNotification.CreationTime,
-			&userNotification.Lat,
-			&userNotification.Lng,
-			&userNotification.FormattedAddress,
-			&userNotification.APNKey,
-			&userNotification.LocationName,
-			&userNotification.MesoscaleDiscussionNotifications,
-			&userNotification.LiveActivities,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		convectiveOptions, err := p.convectiveOutlookOptionsTable.SelectByNotificationId(userNotification.NotificationId)
-		if err != nil {
-			return nil, err
-		}
-
-		alertOptions, err := p.alertOptionsTable.SelectByNotificationId(userNotification.NotificationId)
-		if err != nil {
-			return nil, err
-		}
-
-		userNotification.ConvectiveOutlookOptions = convectiveOptions
-		userNotification.AlertOptions = alertOptions
-
-		userNotifications = append(userNotifications, userNotification)
-	}
-
-	return userNotifications, nil
+	return p.scanRows(rows, false)
 }
 
 // Deprecated: use SelectByUserId
@@ -332,40 +258,21 @@ func (p *PostgresUserNotificationTable) SelectByCodes(codes []string) ([]data_st
 		    formattedAddress,
 		    apnKey, 
 		    locationName,
+			mesoscaleDiscussionNotifications,
 			liveActivities
 		FROM userNotification WHERE zoneCode = $1 OR countyCode = $1`
 
-		userNotification := data_structures.UserNotification{}
-
-		row := p.db.QueryRow(query, code)
-
-		err := row.Scan(&userNotification.NotificationId,
-			&userNotification.UserID,
-			&userNotification.ZoneCode,
-			&userNotification.CountyCode,
-			&userNotification.CreationTime,
-			&userNotification.Lat,
-			&userNotification.Lng,
-			&userNotification.FormattedAddress,
-			&userNotification.APNKey,
-			&userNotification.LocationName,
-			&userNotification.LiveActivities,
-		)
-
-		convectiveOptions, err := p.convectiveOutlookOptionsTable.SelectByNotificationId(userNotification.NotificationId)
+		rows, err := p.db.Query(query, code)
 		if err != nil {
 			return nil, err
 		}
 
-		alertOptions, err := p.alertOptionsTable.SelectByNotificationId(userNotification.NotificationId)
+		userNotificationsToAppend, err := p.scanRows(rows, false)
 		if err != nil {
 			return nil, err
 		}
 
-		userNotification.ConvectiveOutlookOptions = convectiveOptions
-		userNotification.AlertOptions = alertOptions
-
-		userNotifications = append(userNotifications, userNotification)
+		userNotifications = append(userNotifications, userNotificationsToAppend...)
 	}
 
 	return userNotifications, nil
@@ -389,6 +296,7 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithConvectiveOutlook
 	    formattedAddress, 
 	    apnKey, 
 	    locationName,
+		mesoscaleDiscussionNotifications,
 		liveActivities
 	FROM userNotification WHERE notificationId = $1`
 
@@ -397,40 +305,9 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithConvectiveOutlook
 		return nil, err
 	}
 
-	var userNotifications []data_structures.UserNotification
-	for rows.Next() {
-		userNotification := data_structures.UserNotification{}
-
-		err := rows.Scan(&userNotification.NotificationId,
-			&userNotification.UserID,
-			&userNotification.ZoneCode,
-			&userNotification.CountyCode,
-			&userNotification.CreationTime,
-			&userNotification.Lat,
-			&userNotification.Lng,
-			&userNotification.FormattedAddress,
-			&userNotification.APNKey,
-			&userNotification.LocationName,
-			&userNotification.LiveActivities,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		convectiveOptions, err := p.convectiveOutlookOptionsTable.SelectByNotificationId(userNotification.NotificationId)
-		if err != nil {
-			return nil, err
-		}
-
-		alertOptions, err := p.alertOptionsTable.SelectByNotificationId(userNotification.NotificationId)
-		if err != nil {
-			return nil, err
-		}
-
-		userNotification.ConvectiveOutlookOptions = convectiveOptions
-		userNotification.AlertOptions = alertOptions
-
-		userNotifications = append(userNotifications, userNotification)
+	userNotifications, err := p.scanRows(rows, true)
+	if err != nil {
+		return nil, err
 	}
 
 	return userNotifications, nil
@@ -465,28 +342,9 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithMDNotifications()
 		return nil, err
 	}
 
-	var userNotifications []data_structures.UserNotification
-	for rows.Next() {
-		userNotification := data_structures.UserNotification{}
-
-		err := rows.Scan(&userNotification.NotificationId,
-			&userNotification.UserID,
-			&userNotification.ZoneCode,
-			&userNotification.CountyCode,
-			&userNotification.CreationTime,
-			&userNotification.Lat,
-			&userNotification.Lng,
-			&userNotification.FormattedAddress,
-			&userNotification.APNKey,
-			&userNotification.LocationName,
-			&userNotification.MesoscaleDiscussionNotifications,
-			&userNotification.LiveActivities,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		userNotifications = append(userNotifications, userNotification)
+	userNotifications, err := p.scanRows(rows, false)
+	if err != nil {
+		return nil, err
 	}
 
 	return userNotifications, nil
@@ -510,4 +368,48 @@ func (p *PostgresUserNotificationTable) Delete(notificationId string) error {
 	}
 
 	return nil
+}
+
+func (p *PostgresUserNotificationTable) scanRows(rows *sql.Rows, includeOnlyWithConvectiveOptions bool) ([]data_structures.UserNotification, error) {
+	var userNotifications []data_structures.UserNotification
+	for rows.Next() {
+		userNotification := data_structures.UserNotification{}
+
+		err := rows.Scan(&userNotification.NotificationId,
+			&userNotification.UserID,
+			&userNotification.ZoneCode,
+			&userNotification.CountyCode,
+			&userNotification.CreationTime,
+			&userNotification.Lat,
+			&userNotification.Lng,
+			&userNotification.FormattedAddress,
+			&userNotification.APNKey,
+			&userNotification.LocationName,
+			&userNotification.MesoscaleDiscussionNotifications,
+			&userNotification.LiveActivities,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		convectiveOptions, err := p.convectiveOutlookOptionsTable.SelectByNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+		if includeOnlyWithConvectiveOptions && len(convectiveOptions) == 0 {
+			continue
+		}
+
+		alertOptions, err := p.alertOptionsTable.SelectByNotificationId(userNotification.NotificationId)
+		if err != nil {
+			return nil, err
+		}
+
+		userNotification.ConvectiveOutlookOptions = convectiveOptions
+		userNotification.AlertOptions = alertOptions
+
+		userNotifications = append(userNotifications, userNotification)
+	}
+
+	return userNotifications, nil
 }
