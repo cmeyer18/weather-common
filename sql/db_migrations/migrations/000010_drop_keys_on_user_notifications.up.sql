@@ -1,0 +1,2 @@
+ALTER TABLE userNotificationAlertOption DROP CONSTRAINT usernotificationalertoption_pkey;
+ALTER TABLE userNotificationConvectiveOutlookOption DROP CONSTRAINT usernotificationconvectiveoutlookoption_pkey;
