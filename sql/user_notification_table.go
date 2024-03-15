@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
+
 	"github.com/cmeyer18/weather-common/v3/data_structures"
 	"github.com/cmeyer18/weather-common/v3/sql/internal"
 	"github.com/cmeyer18/weather-common/v3/sql/internal/common_tables"
-	"strconv"
 )
 
 var _ IUserNotificationTable = (*PostgresUserNotificationTable)(nil)
@@ -87,7 +88,6 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 	) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
-	// This all needs to go as one transaction
 	ctx := context.Background()
 	tx, err := p.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -447,7 +447,6 @@ func (p *PostgresUserNotificationTable) Update(id string, userNotification data_
 	) =  ($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	WHERE notificationid = ($1)
 `
-	// This all needs to go as one transaction
 	ctx := context.Background()
 	tx, err := p.db.BeginTx(ctx, nil)
 	if err != nil {
