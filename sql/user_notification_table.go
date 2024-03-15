@@ -41,6 +41,8 @@ type IUserNotificationTable interface {
 	SelectNotificationsWithMDNotifications() ([]data_structures.UserNotification, error)
 
 	SelectNotificationsWithConvectiveOutlook() ([]data_structures.UserNotification, error)
+
+	Update(id string, userNotification data_structures.UserNotification) error
 }
 
 type PostgresUserNotificationTable struct {
