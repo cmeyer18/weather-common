@@ -10,13 +10,13 @@ import (
 var _ IUserNotificationConvectiveOutlookOptionTable = (*PostgresUserNotificationConvectiveOutlookOptionTable)(nil)
 
 type IUserNotificationConvectiveOutlookOptionTable interface {
-	Insert(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error
+	Insert(tx *sql.Tx, notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error
 
-	Update(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error
+	Update(tx *sql.Tx, notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error
 
 	SelectByNotificationId(notificationId string) ([]golang.ConvectiveOutlookType, error)
 
-	Delete(notificationId string) error
+	Delete(tx *sql.Tx, notificationId string) error
 }
 
 type PostgresUserNotificationConvectiveOutlookOptionTable struct {
@@ -29,13 +29,13 @@ func NewPostgresUserNotificationConvectiveOutlookOptionTable(db *sql.DB) Postgre
 	}
 }
 
-func (p *PostgresUserNotificationConvectiveOutlookOptionTable) insert(notificationId string, convectiveOutlookOption golang.ConvectiveOutlookType) error {
+func (p *PostgresUserNotificationConvectiveOutlookOptionTable) insert(tx *sql.Tx, notificationId string, convectiveOutlookOption golang.ConvectiveOutlookType) error {
 	//language=SQL
 	query := `INSERT INTO userNotificationConvectiveOutlookOption (notificationId, convectiveOutlookOption) VALUES ($1, $2)`
 
 	convertedConvectiveOutlookOption := string(convectiveOutlookOption)
 
-	_, err := p.db.Exec(query, notificationId, convertedConvectiveOutlookOption)
+	_, err := tx.Exec(query, notificationId, convertedConvectiveOutlookOption)
 	if err != nil {
 		return err
 	}
@@ -43,9 +43,9 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) insert(notificati
 	return nil
 }
 
-func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Insert(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error {
+func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Insert(tx *sql.Tx, notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error {
 	for _, convectiveOutlookOption := range convectiveOutlookOptions {
-		err := p.insert(notificationId, convectiveOutlookOption)
+		err := p.insert(tx, notificationId, convectiveOutlookOption)
 		if err != nil {
 			return err
 		}
@@ -54,13 +54,13 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Insert(notificati
 	return nil
 }
 
-func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Update(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error {
-	err := p.Delete(notificationId)
+func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Update(tx *sql.Tx, notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error {
+	err := p.Delete(tx, notificationId)
 	if err != nil {
 		return err
 	}
 
-	err = p.Insert(notificationId, convectiveOutlookOptions)
+	err = p.Insert(tx, notificationId, convectiveOutlookOptions)
 	if err != nil {
 		return err
 	}
@@ -93,10 +93,10 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) SelectByNotificat
 	return convectiveOutlookTypes, nil
 }
 
-func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Delete(notificationId string) error {
+func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Delete(tx *sql.Tx, notificationId string) error {
 	query := `DELETE FROM userNotificationConvectiveOutlookOption WHERE notificationId = $1`
 
-	exec, err := p.db.Exec(query, notificationId)
+	exec, err := tx.Exec(query, notificationId)
 	if err != nil {
 		return err
 	}

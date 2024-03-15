@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"github.com/cmeyer18/weather-common/v3/data_structures"
@@ -86,7 +87,15 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 	) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
-	_, err := p.db.Exec(
+	// This all needs to go as one transaction
+	ctx := context.Background()
+	tx, err := p.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
 		query,
 		userNotification.NotificationId,
 		userNotification.UserID,
@@ -105,13 +114,17 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 		return err
 	}
 
-	err = p.alertOptionsTable.Insert(userNotification.NotificationId, userNotification.AlertOptions)
+	err = p.alertOptionsTable.Insert(tx, userNotification.NotificationId, userNotification.AlertOptions)
 	if err != nil {
 		return err
 	}
 
-	err = p.convectiveOutlookOptionsTable.Insert(userNotification.NotificationId, userNotification.ConvectiveOutlookOptions)
+	err = p.convectiveOutlookOptionsTable.Insert(tx, userNotification.NotificationId, userNotification.ConvectiveOutlookOptions)
 	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 
@@ -434,8 +447,15 @@ func (p *PostgresUserNotificationTable) Update(id string, userNotification data_
 	) =  ($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	WHERE notificationid = ($1)
 `
+	// This all needs to go as one transaction
+	ctx := context.Background()
+	tx, err := p.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 
-	_, err := p.db.Exec(
+	_, err = tx.Exec(
 		query,
 		id,
 		userNotification.UserID,
@@ -454,12 +474,12 @@ func (p *PostgresUserNotificationTable) Update(id string, userNotification data_
 		return err
 	}
 
-	err = p.alertOptionsTable.Update(id, userNotification.AlertOptions)
+	err = p.alertOptionsTable.Update(tx, id, userNotification.AlertOptions)
 	if err != nil {
 		return err
 	}
 
-	err = p.convectiveOutlookOptionsTable.Update(id, userNotification.ConvectiveOutlookOptions)
+	err = p.convectiveOutlookOptionsTable.Update(tx, id, userNotification.ConvectiveOutlookOptions)
 	if err != nil {
 		return err
 	}
