@@ -10,11 +10,13 @@ import (
 var _ IUserNotificationAlertOptionTable = (*PostgresUserNotificationAlertOptionTable)(nil)
 
 type IUserNotificationAlertOptionTable interface {
-	Insert(notificationId string, alertOptions []golang.AlertType) error
+	Insert(tx *sql.Tx, notificationId string, alertOptions []golang.AlertType) error
+
+	Update(tx *sql.Tx, notificationId string, alertOptions []golang.AlertType) error
 
 	SelectByNotificationId(notificationId string) ([]golang.AlertType, error)
 
-	Delete(notificationId string) error
+	Delete(tx *sql.Tx, notificationId string) error
 }
 
 type PostgresUserNotificationAlertOptionTable struct {
@@ -27,13 +29,13 @@ func NewPostgresUserNotificationsAlertOptionsTable(db *sql.DB) PostgresUserNotif
 	}
 }
 
-func (p *PostgresUserNotificationAlertOptionTable) insert(notificationId string, alertOption golang.AlertType) error {
+func (p *PostgresUserNotificationAlertOptionTable) insert(tx *sql.Tx, notificationId string, alertOption golang.AlertType) error {
 	//language=SQL
 	query := `INSERT INTO userNotificationAlertOption (notificationId, alertOption) VALUES ($1, $2)`
 
 	convertedAlertOption := string(alertOption)
 
-	_, err := p.db.Exec(query, notificationId, convertedAlertOption)
+	_, err := tx.Exec(query, notificationId, convertedAlertOption)
 	if err != nil {
 		return err
 	}
@@ -41,12 +43,26 @@ func (p *PostgresUserNotificationAlertOptionTable) insert(notificationId string,
 	return nil
 }
 
-func (p *PostgresUserNotificationAlertOptionTable) Insert(notificationId string, alertOptions []golang.AlertType) error {
+func (p *PostgresUserNotificationAlertOptionTable) Insert(tx *sql.Tx, notificationId string, alertOptions []golang.AlertType) error {
 	for _, alertOption := range alertOptions {
-		err := p.insert(notificationId, alertOption)
+		err := p.insert(tx, notificationId, alertOption)
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (p *PostgresUserNotificationAlertOptionTable) Update(tx *sql.Tx, notificationId string, alertOptions []golang.AlertType) error {
+	err := p.Delete(tx, notificationId)
+	if err != nil {
+		return err
+	}
+
+	err = p.Insert(tx, notificationId, alertOptions)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -77,10 +93,10 @@ func (p *PostgresUserNotificationAlertOptionTable) SelectByNotificationId(notifi
 	return alertTypes, nil
 }
 
-func (p *PostgresUserNotificationAlertOptionTable) Delete(notificationId string) error {
+func (p *PostgresUserNotificationAlertOptionTable) Delete(tx *sql.Tx, notificationId string) error {
 	query := `DELETE FROM userNotificationAlertOption WHERE notificationId = $1`
 
-	exec, err := p.db.Exec(query, notificationId)
+	exec, err := tx.Exec(query, notificationId)
 	if err != nil {
 		return err
 	}

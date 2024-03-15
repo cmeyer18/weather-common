@@ -1,12 +1,14 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"strconv"
+
 	"github.com/cmeyer18/weather-common/v3/data_structures"
 	"github.com/cmeyer18/weather-common/v3/sql/internal"
 	"github.com/cmeyer18/weather-common/v3/sql/internal/common_tables"
-	"strconv"
 )
 
 var _ IUserNotificationTable = (*PostgresUserNotificationTable)(nil)
@@ -41,6 +43,8 @@ type IUserNotificationTable interface {
 	SelectNotificationsWithMDNotifications() ([]data_structures.UserNotification, error)
 
 	SelectNotificationsWithConvectiveOutlook() ([]data_structures.UserNotification, error)
+
+	Update(id string, userNotification data_structures.UserNotification) error
 }
 
 type PostgresUserNotificationTable struct {
@@ -84,7 +88,14 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 	) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
-	_, err := p.db.Exec(
+	ctx := context.Background()
+	tx, err := p.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
 		query,
 		userNotification.NotificationId,
 		userNotification.UserID,
@@ -103,13 +114,17 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 		return err
 	}
 
-	err = p.alertOptionsTable.Insert(userNotification.NotificationId, userNotification.AlertOptions)
+	err = p.alertOptionsTable.Insert(tx, userNotification.NotificationId, userNotification.AlertOptions)
 	if err != nil {
 		return err
 	}
 
-	err = p.convectiveOutlookOptionsTable.Insert(userNotification.NotificationId, userNotification.ConvectiveOutlookOptions)
+	err = p.convectiveOutlookOptionsTable.Insert(tx, userNotification.NotificationId, userNotification.ConvectiveOutlookOptions)
 	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 
@@ -412,4 +427,61 @@ func (p *PostgresUserNotificationTable) scanRows(rows *sql.Rows, includeOnlyWith
 	}
 
 	return userNotifications, nil
+}
+
+func (p *PostgresUserNotificationTable) Update(id string, userNotification data_structures.UserNotification) error {
+	//language=SQL
+	query := `
+	UPDATE userNotification SET (
+	  	userId, 
+	  	zoneCode, 
+	  	countyCode, 
+	  	creationTime, 
+	  	lat, 
+		lng, 
+	  	formattedAddress, 
+		apnKey, 
+	  	locationName, 
+	  	mesoscaleDiscussionNotifications,
+		liveActivities
+	) =  ($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+	WHERE notificationid = ($1)
+`
+	ctx := context.Background()
+	tx, err := p.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
+		query,
+		id,
+		userNotification.UserID,
+		userNotification.ZoneCode,
+		userNotification.CountyCode,
+		userNotification.CreationTime,
+		userNotification.Lat,
+		userNotification.Lng,
+		userNotification.FormattedAddress,
+		userNotification.APNKey,
+		userNotification.LocationName,
+		userNotification.MesoscaleDiscussionNotifications,
+		userNotification.LiveActivities,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = p.alertOptionsTable.Update(tx, id, userNotification.AlertOptions)
+	if err != nil {
+		return err
+	}
+
+	err = p.convectiveOutlookOptionsTable.Update(tx, id, userNotification.ConvectiveOutlookOptions)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
