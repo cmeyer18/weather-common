@@ -413,3 +413,54 @@ func (p *PostgresUserNotificationTable) scanRows(rows *sql.Rows, includeOnlyWith
 
 	return userNotifications, nil
 }
+
+func (p *PostgresUserNotificationTable) Update(id string, userNotification data_structures.UserNotification) error {
+	//language=SQL
+	query := `
+	UPDATE userNotification SET (
+	  	userId, 
+	  	zoneCode, 
+	  	countyCode, 
+	  	creationTime, 
+	  	lat, 
+		lng, 
+	  	formattedAddress, 
+		apnKey, 
+	  	locationName, 
+	  	mesoscaleDiscussionNotifications,
+		liveActivities
+	) =  ($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+	WHERE notificationid = ($1)
+`
+
+	_, err := p.db.Exec(
+		query,
+		id,
+		userNotification.UserID,
+		userNotification.ZoneCode,
+		userNotification.CountyCode,
+		userNotification.CreationTime,
+		userNotification.Lat,
+		userNotification.Lng,
+		userNotification.FormattedAddress,
+		userNotification.APNKey,
+		userNotification.LocationName,
+		userNotification.MesoscaleDiscussionNotifications,
+		userNotification.LiveActivities,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = p.alertOptionsTable.Update(id, userNotification.AlertOptions)
+	if err != nil {
+		return err
+	}
+
+	err = p.convectiveOutlookOptionsTable.Update(id, userNotification.ConvectiveOutlookOptions)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

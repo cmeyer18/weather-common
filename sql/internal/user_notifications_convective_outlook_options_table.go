@@ -12,6 +12,8 @@ var _ IUserNotificationConvectiveOutlookOptionTable = (*PostgresUserNotification
 type IUserNotificationConvectiveOutlookOptionTable interface {
 	Insert(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error
 
+	Update(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error
+
 	SelectByNotificationId(notificationId string) ([]golang.ConvectiveOutlookType, error)
 
 	Delete(notificationId string) error
@@ -47,6 +49,20 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Insert(notificati
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Update(notificationId string, convectiveOutlookOptions []golang.ConvectiveOutlookType) error {
+	err := p.Delete(notificationId)
+	if err != nil {
+		return err
+	}
+
+	err = p.Insert(notificationId, convectiveOutlookOptions)
+	if err != nil {
+		return err
 	}
 
 	return nil

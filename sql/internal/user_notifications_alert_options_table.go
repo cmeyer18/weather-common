@@ -12,6 +12,8 @@ var _ IUserNotificationAlertOptionTable = (*PostgresUserNotificationAlertOptionT
 type IUserNotificationAlertOptionTable interface {
 	Insert(notificationId string, alertOptions []golang.AlertType) error
 
+	Update(notificationId string, alertOptions []golang.AlertType) error
+
 	SelectByNotificationId(notificationId string) ([]golang.AlertType, error)
 
 	Delete(notificationId string) error
@@ -47,6 +49,20 @@ func (p *PostgresUserNotificationAlertOptionTable) Insert(notificationId string,
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (p *PostgresUserNotificationAlertOptionTable) Update(notificationId string, alertOptions []golang.AlertType) error {
+	err := p.Delete(notificationId)
+	if err != nil {
+		return err
+	}
+
+	err = p.Insert(notificationId, alertOptions)
+	if err != nil {
+		return err
 	}
 
 	return nil

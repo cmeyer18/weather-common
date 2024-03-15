@@ -9,4 +9,6 @@ type IIdTable[T any] interface {
 	Select(id string) (*T, error)
 
 	Delete(id string) error
+
+	Update(id string, item T) error
 }
