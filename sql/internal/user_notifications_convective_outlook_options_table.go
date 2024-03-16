@@ -2,9 +2,8 @@ package internal
 
 import (
 	"database/sql"
-	"errors"
+
 	"github.com/cmeyer18/weather-common/v3/generative/golang"
-	"strconv"
 )
 
 var _ IUserNotificationConvectiveOutlookOptionTable = (*PostgresUserNotificationConvectiveOutlookOptionTable)(nil)
@@ -96,18 +95,9 @@ func (p *PostgresUserNotificationConvectiveOutlookOptionTable) SelectByNotificat
 func (p *PostgresUserNotificationConvectiveOutlookOptionTable) Delete(tx *sql.Tx, notificationId string) error {
 	query := `DELETE FROM userNotificationConvectiveOutlookOption WHERE notificationId = $1`
 
-	exec, err := tx.Exec(query, notificationId)
+	_, err := tx.Exec(query, notificationId)
 	if err != nil {
 		return err
-	}
-
-	affected, err := exec.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if affected == 0 {
-		return errors.New("unexpected number of rows deleted, expected: 1 got:" + strconv.FormatInt(affected, 10))
 	}
 
 	return nil
