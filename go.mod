@@ -1,4 +1,4 @@
-module github.com/cmeyer18/weather-common/v3
+module github.com/cmeyer18/weather-common/v4
 
 go 1.21
 

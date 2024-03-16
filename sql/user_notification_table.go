@@ -6,9 +6,9 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/cmeyer18/weather-common/v3/data_structures"
-	"github.com/cmeyer18/weather-common/v3/sql/internal"
-	"github.com/cmeyer18/weather-common/v3/sql/internal/common_tables"
+	"github.com/cmeyer18/weather-common/v4/data_structures"
+	"github.com/cmeyer18/weather-common/v4/sql/internal"
+	"github.com/cmeyer18/weather-common/v4/sql/internal/common_tables"
 )
 
 var _ IUserNotificationTable = (*PostgresUserNotificationTable)(nil)
@@ -16,29 +16,11 @@ var _ IUserNotificationTable = (*PostgresUserNotificationTable)(nil)
 type IUserNotificationTable interface {
 	common_tables.IIdTable[data_structures.UserNotification]
 
-	// Deprecated: use Insert
-	Create(userNotification data_structures.UserNotification) error
-
-	// Deprecated: use Select
-	Get(notificationId string) (*data_structures.UserNotification, error)
-
-	// Deprecated: use SelectAll
-	GetAll() ([]data_structures.UserNotification, error)
-
 	SelectAll() ([]data_structures.UserNotification, error)
-
-	// Deprecated: use SelectByUserId
-	GetByUserId(userId string) ([]data_structures.UserNotification, error)
 
 	SelectByUserId(userId string) ([]data_structures.UserNotification, error)
 
-	// Deprecated: use SelectByCodes
-	GetByCodes(codes []string) ([]data_structures.UserNotification, error)
-
 	SelectByCodes(codes []string) ([]data_structures.UserNotification, error)
-
-	// Deprecated: use SelectNotificationsWithConvectiveOutlook
-	GetNotificationsWithConvectiveOutlookOptions() ([]data_structures.UserNotification, error)
 
 	SelectNotificationsWithMDNotifications() ([]data_structures.UserNotification, error)
 
@@ -62,11 +44,6 @@ func NewPostgresUserNotificationTable(db *sql.DB) PostgresUserNotificationTable 
 		alertOptionsTable:             &alertOptionsTable,
 		convectiveOutlookOptionsTable: &convectiveOutlookOptionsTable,
 	}
-}
-
-// Deprecated: use the weather-db-migrator docker images for setup
-func (p *PostgresUserNotificationTable) Init() error {
-	return nil
 }
 
 func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.UserNotification) error {
@@ -131,11 +108,6 @@ func (p *PostgresUserNotificationTable) Insert(userNotification data_structures.
 	return nil
 }
 
-// Deprecated: use Insert
-func (p *PostgresUserNotificationTable) Create(userNotification data_structures.UserNotification) error {
-	return p.Insert(userNotification)
-}
-
 func (p *PostgresUserNotificationTable) Select(id string) (*data_structures.UserNotification, error) {
 	query := `
 	SELECT 
@@ -192,11 +164,6 @@ func (p *PostgresUserNotificationTable) Select(id string) (*data_structures.User
 	return &userNotification, nil
 }
 
-// Deprecated: use Select
-func (p *PostgresUserNotificationTable) Get(notificationId string) (*data_structures.UserNotification, error) {
-	return p.Select(notificationId)
-}
-
 func (p *PostgresUserNotificationTable) SelectAll() ([]data_structures.UserNotification, error) {
 	query := `
 	SELECT 
@@ -223,11 +190,6 @@ func (p *PostgresUserNotificationTable) SelectAll() ([]data_structures.UserNotif
 	return p.scanRows(rows, false)
 }
 
-// Deprecated: use SelectAll
-func (p *PostgresUserNotificationTable) GetAll() ([]data_structures.UserNotification, error) {
-	return p.SelectAll()
-}
-
 func (p *PostgresUserNotificationTable) SelectByUserId(userId string) ([]data_structures.UserNotification, error) {
 	query := `
 	SELECT 
@@ -251,11 +213,6 @@ func (p *PostgresUserNotificationTable) SelectByUserId(userId string) ([]data_st
 	}
 
 	return p.scanRows(rows, false)
-}
-
-// Deprecated: use SelectByUserId
-func (p *PostgresUserNotificationTable) GetByUserId(userId string) ([]data_structures.UserNotification, error) {
-	return p.SelectByUserId(userId)
 }
 
 func (p *PostgresUserNotificationTable) SelectByCodes(codes []string) ([]data_structures.UserNotification, error) {
@@ -293,11 +250,6 @@ func (p *PostgresUserNotificationTable) SelectByCodes(codes []string) ([]data_st
 	return userNotifications, nil
 }
 
-// Deprecated: use SelectByCodes
-func (p *PostgresUserNotificationTable) GetByCodes(codes []string) ([]data_structures.UserNotification, error) {
-	return p.SelectByCodes(codes)
-}
-
 func (p *PostgresUserNotificationTable) SelectNotificationsWithConvectiveOutlook() ([]data_structures.UserNotification, error) {
 	query := `
 	SELECT 
@@ -326,11 +278,6 @@ func (p *PostgresUserNotificationTable) SelectNotificationsWithConvectiveOutlook
 	}
 
 	return userNotifications, nil
-}
-
-// Deprecated: use SelectNotificationsWithConvectiveOutlook
-func (p *PostgresUserNotificationTable) GetNotificationsWithConvectiveOutlookOptions() ([]data_structures.UserNotification, error) {
-	return p.SelectNotificationsWithConvectiveOutlook()
 }
 
 // SelectNotificationsWithMDNotifications Selects all of the notifications that want mesoscale discussion notifications.

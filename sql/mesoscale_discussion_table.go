@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/cmeyer18/weather-common/v3/data_structures"
-	"github.com/cmeyer18/weather-common/v3/data_structures/geojson"
 	"strconv"
+
+	"github.com/cmeyer18/weather-common/v4/data_structures"
+	"github.com/cmeyer18/weather-common/v4/data_structures/geojson"
 )
 
 var _ IPostgresMesoscaleDiscussionTable = (*PostgresMesoscaleDiscussionTable)(nil)
