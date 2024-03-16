@@ -483,5 +483,9 @@ func (p *PostgresUserNotificationTable) Update(id string, userNotification data_
 		return err
 	}
 
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
 	return nil
 }
