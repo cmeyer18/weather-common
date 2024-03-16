@@ -4,29 +4,18 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/cmeyer18/weather-common/v3/data_structures"
-	"github.com/cmeyer18/weather-common/v3/generative/golang"
 	"time"
+
+	"github.com/cmeyer18/weather-common/v4/data_structures"
+	"github.com/cmeyer18/weather-common/v4/generative/golang"
 )
 
 var _ IConvectiveOutlookTable = (*PostgresConvectiveOutlookTable)(nil)
 
 type IConvectiveOutlookTable interface {
-	// Deprecated: use the weather-db-migrator docker images for setup
-	Init() error
-
-	// Deprecated: use Insert
-	Create(outlook *data_structures.ConvectiveOutlook) error
-
 	Insert(outlook data_structures.ConvectiveOutlook) error
 
-	// Deprecated: use Select
-	Find(publishedTime time.Time, outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error)
-
 	Select(publishedTime time.Time, outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error)
-
-	// Deprecated: use SelectLatest
-	FindLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error)
 
 	SelectLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error)
 }
@@ -41,29 +30,7 @@ func NewPostgresConvectiveOutlookTable(db *sql.DB) PostgresConvectiveOutlookTabl
 	}
 }
 
-// Deprecated: use the weather-db-migrator docker images for setup
-func (p *PostgresConvectiveOutlookTable) Init() error {
-	return nil
-}
-
 func (p *PostgresConvectiveOutlookTable) Insert(outlook data_structures.ConvectiveOutlook) error {
-	//language=SQL
-	query := `INSERT INTO convectiveOutlookTable (outlookType, outlook) VALUES ($1, $2)`
-	marshalledOutlook, err := json.Marshal(outlook)
-	if err != nil {
-		return err
-	}
-
-	_, err = p.db.Exec(query, outlook.OutlookType, marshalledOutlook)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Deprecated: use Insert
-func (p *PostgresConvectiveOutlookTable) Create(outlook *data_structures.ConvectiveOutlook) error {
 	//language=SQL
 	query := `INSERT INTO convectiveOutlookTable (outlookType, outlook) VALUES ($1, $2)`
 	marshalledOutlook, err := json.Marshal(outlook)
@@ -101,11 +68,6 @@ func (p *PostgresConvectiveOutlookTable) Select(publishedTime time.Time, outlook
 	return &outlook, nil
 }
 
-// Deprecated: use Select
-func (p *PostgresConvectiveOutlookTable) Find(publishedTime time.Time, outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
-	return p.Select(publishedTime, outlookType)
-}
-
 func (p *PostgresConvectiveOutlookTable) SelectLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
 	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlooktype = $1 ORDER BY (outlook->'features'->0->'properties'->>'VALID')::timestamptz DESC LIMIT 1`
 
@@ -126,9 +88,4 @@ func (p *PostgresConvectiveOutlookTable) SelectLatest(outlookType golang.Convect
 	}
 
 	return &outlook, nil
-}
-
-// Deprecated: use SelectLatest
-func (p *PostgresConvectiveOutlookTable) FindLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
-	return p.SelectLatest(outlookType)
 }
