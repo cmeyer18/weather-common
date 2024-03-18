@@ -21,4 +21,5 @@ type UserNotification struct {
 	AlertOptions                     []golang.AlertType             `json:"alertOptions"`
 	MesoscaleDiscussionNotifications bool                           `json:"mesoscaleDiscussionNotifications"`
 	LiveActivities                   bool                           `json:"liveActivities"`
+	IsDeviceLocation                 bool                           `json:"isDeviceLocation"`
 }
