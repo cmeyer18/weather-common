@@ -23,9 +23,9 @@ type PostgresDeviceTable struct {
 
 func (p PostgresDeviceTable) Insert(device data_structures.Device) error {
 	//language=SQL
-	query := `INSERT INTO device (id, userId, apnsToken) VALUES ($1, $2, $3)`
+	query := `INSERT INTO device (id, apnsToken) VALUES ($1, $2)`
 
-	_, err := p.db.Exec(query, device.DeviceId, device.UserId, device.APNSToken)
+	_, err := p.db.Exec(query, device.DeviceId, device.APNSToken)
 	if err != nil {
 		return err
 	}
@@ -34,14 +34,13 @@ func (p PostgresDeviceTable) Insert(device data_structures.Device) error {
 }
 
 func (p PostgresDeviceTable) Select(id string) (*data_structures.Device, error) {
-	query := `SELECT id, userId, apnsToken FROM device WHERE id = $1`
+	query := `SELECT id, apnsToken FROM device WHERE id = $1`
 
 	row := p.db.QueryRow(query, id)
 
 	device := data_structures.Device{}
 	err := row.Scan(
 		&device.DeviceId,
-		&device.UserId,
 		&device.APNSToken,
 	)
 	if err != nil {
