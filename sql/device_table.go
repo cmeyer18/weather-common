@@ -14,6 +14,8 @@ var _ IDeviceTable = (*PostgresDeviceTable)(nil)
 type IDeviceTable interface {
 	common_tables.IIdTable[data_structures.Device]
 
+	SelectByUser(userId string) ([]data_structures.Device, error)
+
 	UpdateApnsToken(id, apnsToken string) error
 }
 
@@ -21,11 +23,17 @@ type PostgresDeviceTable struct {
 	db *sql.DB
 }
 
+func NewPostgresDeviceTable(db *sql.DB) PostgresDeviceTable {
+	return PostgresDeviceTable{
+		db: db,
+	}
+}
+
 func (p PostgresDeviceTable) Insert(device data_structures.Device) error {
 	//language=SQL
-	query := `INSERT INTO device (id, apnsToken) VALUES ($1, $2)`
+	query := `INSERT INTO device (id, userId, apnsToken) VALUES ($1, $2, $3)`
 
-	_, err := p.db.Exec(query, device.DeviceId, device.APNSToken)
+	_, err := p.db.Exec(query, device.DeviceId, device.UserId, device.APNSToken)
 	if err != nil {
 		return err
 	}
@@ -34,13 +42,14 @@ func (p PostgresDeviceTable) Insert(device data_structures.Device) error {
 }
 
 func (p PostgresDeviceTable) Select(id string) (*data_structures.Device, error) {
-	query := `SELECT id, apnsToken FROM device WHERE id = $1`
+	query := `SELECT id, userId, apnsToken FROM device WHERE id = $1`
 
 	row := p.db.QueryRow(query, id)
 
 	device := data_structures.Device{}
 	err := row.Scan(
 		&device.DeviceId,
+		&device.UserId,
 		&device.APNSToken,
 	)
 	if err != nil {
@@ -48,6 +57,32 @@ func (p PostgresDeviceTable) Select(id string) (*data_structures.Device, error) 
 	}
 
 	return &device, nil
+}
+
+func (p PostgresDeviceTable) SelectByUser(userId string) ([]data_structures.Device, error) {
+	query := `SELECT id, userId, apnsToken FROM device WHERE userId = $1`
+
+	rows, err := p.db.Query(query, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var devices []data_structures.Device
+	for rows.Next() {
+		device := data_structures.Device{}
+		err := rows.Scan(
+			&device.DeviceId,
+			&device.UserId,
+			&device.APNSToken,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		devices = append(devices, device)
+	}
+
+	return devices, nil
 }
 
 func (p PostgresDeviceTable) Delete(id string) error {
@@ -72,7 +107,7 @@ func (p PostgresDeviceTable) Delete(id string) error {
 
 func (p PostgresDeviceTable) UpdateApnsToken(id, apnsToken string) error {
 	//language=SQL
-	query := `UPDATE device SET (apnsToken) = ($2) WHERE id = ($1)`
+	query := `UPDATE device SET apnsToken = $2 WHERE id = ($1)`
 
 	_, err := p.db.Exec(query, id, apnsToken)
 	if err != nil {
