@@ -52,7 +52,6 @@ func (g *GeometryV2) MarshalJSON() ([]byte, error) {
 			Coordinates: g.MultiPolygon,
 		})
 	case "GeometryCollection":
-		println("cdm return end")
 		return []byte("null"), nil
 	default:
 		return nil, fmt.Errorf("unsupported geometry type: %s", g.Type)
@@ -61,7 +60,7 @@ func (g *GeometryV2) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements custom JSON unmarshaling for the GeometryV2 struct.
 func (g *GeometryV2) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" || string(data) == "" {
+	if string(data) == "null" || string(data) == "" || string(data) == `""` {
 		return nil
 	}
 

@@ -50,6 +50,7 @@ func (p *PostgresConvectiveOutlookTableV2) Insert(outlooks []data_structures.Con
 		if err != nil {
 			return err
 		}
+		defer statement.Close()
 
 		var marshalledGeometryBytes []byte
 		if outlook.Geometry != nil {
@@ -82,6 +83,7 @@ func (p *PostgresConvectiveOutlookTableV2) Select(issuedTime time.Time, outlookT
 	if err != nil {
 		return nil, err
 	}
+	defer statement.Close()
 
 	rows, err := statement.Query(issuedTime, string(outlookType))
 	if err != nil {
@@ -103,6 +105,7 @@ func (p *PostgresConvectiveOutlookTableV2) SelectLatest(outlookType golang.Conve
 	if err != nil {
 		return nil, err
 	}
+	defer statement.Close()
 
 	rows, err := statement.Query(string(outlookType))
 	if err != nil {
@@ -124,9 +127,11 @@ func (p *PostgresConvectiveOutlookTableV2) processConvectiveOutlooks(rows *sql.R
 			return nil, err
 		}
 
-		err = json.Unmarshal(marshalledGeometry, &outlook.Geometry)
-		if err != nil {
-			return nil, err
+		if !(string(marshalledGeometry) == "" || string(marshalledGeometry) == `""` || string(marshalledGeometry) == "null") {
+			err = json.Unmarshal(marshalledGeometry, &outlook.Geometry)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		outlook.OutlookType = golang.ConvectiveOutlookType(outlookType)

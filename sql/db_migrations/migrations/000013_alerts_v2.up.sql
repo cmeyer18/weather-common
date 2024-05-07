@@ -56,4 +56,10 @@ CREATE TABLE convectiveOutlookV2 (
     PRIMARY KEY (outlookType, issued, label)
 );
 
-
+CREATE TABLE mesoscaleDiscussionV2 (
+    number int,
+    year int,
+    geometry geometry,
+    rawText text,
+    PRIMARY KEY (number,year)
+);
