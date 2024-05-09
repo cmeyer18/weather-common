@@ -1,20 +1,18 @@
-package geojson
+package geojson_v2
 
 import (
 	"encoding/json"
 )
 
-type MultiPointV2 struct {
-	Points []*PointV2
+type MultiPoint struct {
+	Points []*Point
 }
 
-// MarshalJSON implements custom JSON marshaling for the MultiPointV2 struct.
-func (mp *MultiPointV2) MarshalJSON() ([]byte, error) {
+func (mp *MultiPoint) MarshalJSON() ([]byte, error) {
 	return json.Marshal(mp.encodeMultiPoint())
 }
 
-// UnmarshalJSON implements custom JSON unmarshaling for the MultiPointV2 struct.
-func (mp *MultiPointV2) UnmarshalJSON(data []byte) error {
+func (mp *MultiPoint) UnmarshalJSON(data []byte) error {
 	var coordinates [][]float64
 	if err := json.Unmarshal(data, &coordinates); err != nil {
 		return err
@@ -23,7 +21,7 @@ func (mp *MultiPointV2) UnmarshalJSON(data []byte) error {
 	return mp.decodeMultiPoint(coordinates)
 }
 
-func (mp *MultiPointV2) encodeMultiPoint() [][]float64 {
+func (mp *MultiPoint) encodeMultiPoint() [][]float64 {
 	coordinates := make([][]float64, len(mp.Points))
 	for i, point := range mp.Points {
 		coordinates[i] = point.encodePoint()
@@ -31,10 +29,10 @@ func (mp *MultiPointV2) encodeMultiPoint() [][]float64 {
 	return coordinates
 }
 
-func (mp *MultiPointV2) decodeMultiPoint(multiPoint [][]float64) error {
-	points := make([]*PointV2, len(multiPoint))
+func (mp *MultiPoint) decodeMultiPoint(multiPoint [][]float64) error {
+	points := make([]*Point, len(multiPoint))
 	for i, point := range multiPoint {
-		pt := &PointV2{}
+		pt := &Point{}
 		err := pt.decodePoint(point)
 		if err != nil {
 			return err

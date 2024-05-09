@@ -1,22 +1,20 @@
-package geojson
+package geojson_v2
 
 import (
 	"encoding/json"
 	"fmt"
 )
 
-type PolygonV2 struct {
-	OuterPath  *MultiPointV2
-	InnerPaths []*MultiPointV2
+type Polygon struct {
+	OuterPath  *MultiPoint
+	InnerPaths []*MultiPoint
 }
 
-// MarshalJSON implements custom JSON marshaling for the PolygonV2 struct.
-func (pg *PolygonV2) MarshalJSON() ([]byte, error) {
+func (pg *Polygon) MarshalJSON() ([]byte, error) {
 	return json.Marshal(pg.encodePolygon())
 }
 
-// UnmarshalJSON implements custom JSON unmarshaling for the PolygonV2 struct.
-func (pg *PolygonV2) UnmarshalJSON(data []byte) error {
+func (pg *Polygon) UnmarshalJSON(data []byte) error {
 	var coordinates [][][]float64
 	if err := json.Unmarshal(data, &coordinates); err != nil {
 		return err
@@ -28,7 +26,7 @@ func (pg *PolygonV2) UnmarshalJSON(data []byte) error {
 	return pg.decodePolygon(coordinates)
 }
 
-func (pg *PolygonV2) encodePolygon() [][][]float64 {
+func (pg *Polygon) encodePolygon() [][][]float64 {
 	coordinates := make([][][]float64, 1+len(pg.InnerPaths))
 	coordinates[0] = pg.OuterPath.encodeMultiPoint()
 	for i, innerPath := range pg.InnerPaths {
@@ -37,16 +35,16 @@ func (pg *PolygonV2) encodePolygon() [][][]float64 {
 	return coordinates
 }
 
-func (pg *PolygonV2) decodePolygon(polygon [][][]float64) error {
-	outerPath := &MultiPointV2{}
+func (pg *Polygon) decodePolygon(polygon [][][]float64) error {
+	outerPath := &MultiPoint{}
 	err := outerPath.decodeMultiPoint(polygon[0])
 	if err != nil {
 		return err
 	}
 
-	innerPaths := make([]*MultiPointV2, len(polygon)-1)
+	innerPaths := make([]*MultiPoint, len(polygon)-1)
 	for i := 1; i < len(polygon); i++ {
-		innerPath := &MultiPointV2{}
+		innerPath := &MultiPoint{}
 		err := innerPath.decodeMultiPoint(polygon[i])
 		if err != nil {
 			return err

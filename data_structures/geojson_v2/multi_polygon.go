@@ -1,13 +1,12 @@
-package geojson
+package geojson_v2
 
 import "encoding/json"
 
-// MultiPolygonV2 represents a GeoJSON MultiPolygon geometry.
-type MultiPolygonV2 struct {
-	Polygons []*PolygonV2 `json:"polygons"`
+type MultiPolygon struct {
+	Polygons []*Polygon `json:"polygons"`
 }
 
-func (mpg *MultiPolygonV2) MarshalJSON() ([]byte, error) {
+func (mpg *MultiPolygon) MarshalJSON() ([]byte, error) {
 	coordinates := make([][][][]float64, len(mpg.Polygons))
 	for i, polygon := range mpg.Polygons {
 		coordinates[i] = polygon.encodePolygon()
@@ -15,7 +14,7 @@ func (mpg *MultiPolygonV2) MarshalJSON() ([]byte, error) {
 	return json.Marshal(coordinates)
 }
 
-func (mpg *MultiPolygonV2) UnmarshalJSON(data []byte) error {
+func (mpg *MultiPolygon) UnmarshalJSON(data []byte) error {
 	var coordinates [][][][]float64
 	if err := json.Unmarshal(data, &coordinates); err != nil {
 		return err
@@ -23,10 +22,10 @@ func (mpg *MultiPolygonV2) UnmarshalJSON(data []byte) error {
 	return mpg.decode(coordinates)
 }
 
-func (mpg *MultiPolygonV2) decode(coordinates [][][][]float64) error {
-	polygons := make([]*PolygonV2, len(coordinates))
+func (mpg *MultiPolygon) decode(coordinates [][][][]float64) error {
+	polygons := make([]*Polygon, len(coordinates))
 	for i, polygonCoords := range coordinates {
-		polygon := &PolygonV2{}
+		polygon := &Polygon{}
 		err := polygon.decodePolygon(polygonCoords)
 		if err != nil {
 			return err

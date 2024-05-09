@@ -10,7 +10,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/cmeyer18/weather-common/v4/data_structures"
-	geojson "github.com/cmeyer18/weather-common/v4/data_structures/geojsonv2"
+	"github.com/cmeyer18/weather-common/v4/data_structures/geojson_v2"
 	"github.com/cmeyer18/weather-common/v4/sql/internal"
 	"github.com/cmeyer18/weather-common/v4/sql/internal/common_tables"
 )
@@ -20,7 +20,7 @@ var _ IAlertV2Table = (*PostgresAlertV2Table)(nil)
 type IAlertV2Table interface {
 	common_tables.IIdTable[data_structures.AlertV2]
 
-	SelectByLocation(codes []string, point geojson.PointV2) ([]data_structures.AlertV2, error)
+	SelectByLocation(codes []string, point geojson_v2.Point) ([]data_structures.AlertV2, error)
 
 	Exists(id string) (bool, error)
 }
@@ -155,7 +155,7 @@ func (p *PostgresAlertV2Table) Select(id string) (*data_structures.AlertV2, erro
 	return &alerts[0], nil
 }
 
-func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson.PointV2) ([]data_structures.AlertV2, error) {
+func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2.Point) ([]data_structures.AlertV2, error) {
 	statement, err := p.db.Prepare(`
 	SELECT DISTINCT a.id, a.type, a.geometry::JSONB, a.areaDesc, a.sent, a.effective, a.onset, 
             a.expires, a.ends, a.status, a.messageType, a.category, a.severity, 
@@ -256,14 +256,14 @@ func (p *PostgresAlertV2Table) processAlertRows(rows *sql.Rows) ([]data_structur
 			return nil, err
 		}
 
-		if !(string(marshalledParameters) == "" || string(marshalledParameters) ==  `""` || string(marshalledParameters) == "null") {
+		if !(string(marshalledParameters) == "" || string(marshalledParameters) == `""` || string(marshalledParameters) == "null") {
 			err = json.Unmarshal(marshalledParameters, &alert.Parameters)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		if !(string(marshalledGeometry) == "" || string(marshalledGeometry) ==  `""` || string(marshalledGeometry) == "null") {
+		if !(string(marshalledGeometry) == "" || string(marshalledGeometry) == `""` || string(marshalledGeometry) == "null") {
 			err = json.Unmarshal(marshalledGeometry, &alert.Geometry)
 			if err != nil {
 				return nil, err

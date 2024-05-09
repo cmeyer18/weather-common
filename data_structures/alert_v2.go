@@ -3,13 +3,13 @@ package data_structures
 import (
 	"time"
 
-	geojson2 "github.com/cmeyer18/weather-common/v4/data_structures/geojsonv2"
+	geojson2 "github.com/cmeyer18/weather-common/v4/data_structures/geojson_v2"
 )
 
 type AlertV2 struct {
 	ID            string                    `json:"id"`
 	Type          string                    `json:"type"`
-	Geometry      *geojson2.GeometryV2      `json:"geometry"`
+	Geometry      *geojson2.Geometry        `json:"geometry"`
 	AreaDesc      string                    `json:"areaDesc"`
 	Geocode       *AlertPropertiesGeocodeV2 `json:"geocode"`
 	AffectedZones []string                  `json:"affectedZones"`

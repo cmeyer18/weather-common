@@ -3,14 +3,14 @@ package data_structures
 import (
 	"time"
 
-	geojson2 "github.com/cmeyer18/weather-common/v4/data_structures/geojsonv2"
+	geojson2 "github.com/cmeyer18/weather-common/v4/data_structures/geojson_v2"
 	"github.com/cmeyer18/weather-common/v4/generative/golang"
 )
 
 type ConvectiveOutlookV2 struct {
 	ID          string                       `json:"id"`
 	OutlookType golang.ConvectiveOutlookType `json:"outlookType"`
-	Geometry    *geojson2.GeometryV2         `json:"geometry"`
+	Geometry    *geojson2.Geometry           `json:"geometry"`
 	DN          int                          `json:"dn"`
 	Valid       time.Time                    `json:"valid"`
 	Expires     time.Time                    `json:"expires"`
