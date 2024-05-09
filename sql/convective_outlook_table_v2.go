@@ -18,6 +18,8 @@ type IConvectiveOutlookTableV2 interface {
 
 	Select(publishedTime time.Time, outlookType golang.ConvectiveOutlookType) ([]data_structures.ConvectiveOutlookV2, error)
 
+	SelectById(id string) ([]data_structures.ConvectiveOutlookV2, error)
+
 	SelectLatest(outlookType golang.ConvectiveOutlookType) ([]data_structures.ConvectiveOutlookV2, error)
 }
 
@@ -39,14 +41,14 @@ func (p *PostgresConvectiveOutlookTableV2) Insert(outlooks []data_structures.Con
 	for _, outlook := range outlooks {
 		//language=SQL
 		statement, err := p.db.Prepare(`
-		INSERT INTO convectiveOutlookV2(outlookType, geometry, dn, issued, expires, valid, label, label2, stroke, fill) 
-		VALUES (
-			$1, 
+		INSERT INTO convectiveOutlookV2(id, outlookType, geometry, dn, issued, expires, valid, label, label2, stroke, fill) 
+		VALUES(
+			$1,$2, 
 			CASE 
-				WHEN $2::TEXT IS NULL OR $2::TEXT = '' OR  jsonb_typeof($2::JSONB) = 'null' THEN NULL 
-				ELSE ST_GeomFromGeoJSON($2::JSONB) 
+				WHEN $3::TEXT IS NULL OR $3::TEXT = '' OR  jsonb_typeof($3::JSONB) = 'null' THEN NULL 
+				ELSE ST_GeomFromGeoJSON($3::JSONB) 
     		END,
-			$3, $4, $5, $6, $7, $8, $9, $10)`)
+			$4, $5, $6, $7, $8, $9, $10, $11)`)
 		if err != nil {
 			return err
 		}
@@ -64,7 +66,7 @@ func (p *PostgresConvectiveOutlookTableV2) Insert(outlooks []data_structures.Con
 		pattern := regexp.MustCompile(`\\+`)
 		unescapedString := pattern.ReplaceAllString(string(marshalledGeometryBytes), "")
 
-		_, err = statement.Exec(string(outlook.OutlookType), unescapedString, outlook.DN, outlook.Issued, outlook.Expires, outlook.Valid, outlook.Label, outlook.Label2, outlook.Stroke, outlook.Fill)
+		_, err = statement.Exec(outlook.ID, string(outlook.OutlookType), unescapedString, outlook.DN, outlook.Issued, outlook.Expires, outlook.Valid, outlook.Label, outlook.Label2, outlook.Stroke, outlook.Fill)
 		if err != nil {
 			return err
 		}
@@ -79,7 +81,7 @@ func (p *PostgresConvectiveOutlookTableV2) Insert(outlooks []data_structures.Con
 }
 
 func (p *PostgresConvectiveOutlookTableV2) Select(issuedTime time.Time, outlookType golang.ConvectiveOutlookType) ([]data_structures.ConvectiveOutlookV2, error) {
-	statement, err := p.db.Prepare(`SELECT outlookType, geometry::JSONB, dn, issued, expires, valid, label, label2, stroke, fill FROM convectiveOutlookV2 WHERE $1 = issued AND $2 = outlookType`)
+	statement, err := p.db.Prepare(`SELECT id, outlookType, geometry::JSONB, dn, issued, expires, valid, label, label2, stroke, fill FROM convectiveOutlookV2 WHERE $1 = issued AND $2 = outlookType`)
 	if err != nil {
 		return nil, err
 	}
@@ -93,9 +95,24 @@ func (p *PostgresConvectiveOutlookTableV2) Select(issuedTime time.Time, outlookT
 	return p.processConvectiveOutlooks(rows)
 }
 
+func (p *PostgresConvectiveOutlookTableV2) SelectById(id string) ([]data_structures.ConvectiveOutlookV2, error) {
+	statement, err := p.db.Prepare(`SELECT id, outlookType, geometry::JSONB, dn, issued, expires, valid, label, label2, stroke, fill FROM convectiveOutlookV2 WHERE $1 = id`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	rows, err := statement.Query(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.processConvectiveOutlooks(rows)
+}
+
 func (p *PostgresConvectiveOutlookTableV2) SelectLatest(outlookType golang.ConvectiveOutlookType) ([]data_structures.ConvectiveOutlookV2, error) {
 	statement, err := p.db.Prepare(`
-	SELECT outlookType, geometry::JSONB, dn, issued, expires, valid, label, label2, stroke, fill 
+	SELECT id, outlookType, geometry::JSONB, dn, issued, expires, valid, label, label2, stroke, fill 
 	FROM convectiveOutlookV2 
 	WHERE $1 = outlookType AND valid = (
 		SELECT MAX(valid)
@@ -122,7 +139,7 @@ func (p *PostgresConvectiveOutlookTableV2) processConvectiveOutlooks(rows *sql.R
 		var marshalledGeometry []byte
 		var outlookType string
 
-		err := rows.Scan(&outlookType, &marshalledGeometry, &outlook.DN, &outlook.Issued, &outlook.Expires, &outlook.Valid, &outlook.Label, &outlook.Label2, &outlook.Stroke, &outlook.Fill)
+		err := rows.Scan(&outlook.ID, &outlookType, &marshalledGeometry, &outlook.DN, &outlook.Issued, &outlook.Expires, &outlook.Valid, &outlook.Label, &outlook.Label2, &outlook.Stroke, &outlook.Fill)
 		if err != nil {
 			return nil, err
 		}

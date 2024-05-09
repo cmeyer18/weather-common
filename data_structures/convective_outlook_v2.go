@@ -8,7 +8,7 @@ import (
 )
 
 type ConvectiveOutlookV2 struct {
-	ID          string
+	ID          string                       `json:"id"`
 	OutlookType golang.ConvectiveOutlookType `json:"outlookType"`
 	Geometry    *geojson2.GeometryV2         `json:"geometry"`
 	DN          int                          `json:"dn"`

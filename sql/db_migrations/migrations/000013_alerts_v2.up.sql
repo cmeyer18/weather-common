@@ -43,6 +43,7 @@ CREATE TABLE alertV2_UGCCodes (
 );
 
 CREATE TABLE convectiveOutlookV2 (
+    id TEXT,
     outlookType TEXT,
     geometry geometry,
     dn int,
@@ -53,13 +54,14 @@ CREATE TABLE convectiveOutlookV2 (
     label2 TEXT,
     stroke TEXT,
     fill TEXT,
-    PRIMARY KEY (outlookType, issued, label)
+    PRIMARY KEY (id, outlookType, issued, label)
 );
 
 CREATE TABLE mesoscaleDiscussionV2 (
+    id TEXT,
     number int,
     year int,
     geometry geometry,
     rawText text,
-    PRIMARY KEY (number,year)
+    PRIMARY KEY (id, number,year)
 );

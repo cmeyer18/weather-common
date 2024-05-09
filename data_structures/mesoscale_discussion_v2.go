@@ -5,9 +5,9 @@ import (
 )
 
 type MesoscaleDiscussionV2 struct {
-	ID       string
-	Number   int
-	Year     int
-	Geometry *geojson.GeometryV2
-	RawText  string
+	ID       string              `json:"id"`
+	Number   int                 `json:"number"`
+	Year     int                 `json:"year"`
+	Geometry *geojson.GeometryV2 `json:"geometry"`
+	RawText  string              `json:"rawText"`
 }
