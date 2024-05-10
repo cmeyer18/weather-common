@@ -3,7 +3,6 @@ package sql
 import (
 	"database/sql"
 	"encoding/json"
-	"regexp"
 
 	"github.com/cmeyer18/weather-common/v4/data_structures"
 )
@@ -58,11 +57,7 @@ func (p *PostgresMesoscaleDiscussionV2Table) Insert(md data_structures.Mesoscale
 		}
 	}
 
-	// Clean up the json, SQL doesn't like these escape characters.
-	pattern := regexp.MustCompile(`\\+`)
-	unescapedString := pattern.ReplaceAllString(string(marshalledGeometryBytes), "")
-
-	_, err = statement.Exec(md.ID, md.Number, md.Year, unescapedString, md.RawText)
+	_, err = statement.Exec(md.ID, md.Number, md.Year, marshalledGeometryBytes, md.RawText)
 	if err != nil {
 		return err
 	}
@@ -133,17 +128,22 @@ func (p *PostgresMesoscaleDiscussionV2Table) SelectById(id string) (*data_struct
 }
 
 func (p *PostgresMesoscaleDiscussionV2Table) SelectMDNotInTable(year int, mdsToCheck map[int]bool) ([]int, error) {
-	query := `SELECT number FROM mesoscaleDiscussionV2 WHERE year = $1`
-
-	row, err := p.db.Query(query, year)
+	statement, err := p.db.Prepare(`SELECT number FROM mesoscaleDiscussionV2 WHERE year = $1`)
 	if err != nil {
 		return nil, err
 	}
+	defer statement.Close()
+
+	rows, err := statement.Query(year)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	mdInTable := make(map[int]bool)
-	for row.Next() {
+	for rows.Next() {
 		var md int
-		err := row.Scan(&md)
+		err := rows.Scan(&md)
 		if err != nil {
 			return nil, err
 		}
@@ -161,9 +161,13 @@ func (p *PostgresMesoscaleDiscussionV2Table) SelectMDNotInTable(year int, mdsToC
 }
 
 func (p *PostgresMesoscaleDiscussionV2Table) Delete(year, mdNumber int) error {
-	query := `DELETE FROM mesoscaleDiscussionV2 WHERE year = $1 AND number = $2`
+	statement, err := p.db.Prepare(`DELETE FROM mesoscaleDiscussionV2 WHERE year = $1 AND number = $2`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
 
-	_, err := p.db.Exec(query, year, mdNumber)
+	_, err = statement.Exec(year, mdNumber)
 	if err != nil {
 		return err
 	}

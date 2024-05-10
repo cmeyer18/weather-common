@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"regexp"
 	"time"
 
 	"github.com/cmeyer18/weather-common/v4/data_structures"
@@ -62,11 +61,7 @@ func (p *PostgresConvectiveOutlookTableV2) Insert(outlooks []data_structures.Con
 			}
 		}
 
-		// Clean up the json, SQL doesn't like these escape characters.
-		pattern := regexp.MustCompile(`\\+`)
-		unescapedString := pattern.ReplaceAllString(string(marshalledGeometryBytes), "")
-
-		_, err = statement.Exec(outlook.ID, string(outlook.OutlookType), unescapedString, outlook.DN, outlook.Issued, outlook.Expires, outlook.Valid, outlook.Label, outlook.Label2, outlook.Stroke, outlook.Fill)
+		_, err = statement.Exec(outlook.ID, string(outlook.OutlookType), marshalledGeometryBytes, outlook.DN, outlook.Issued, outlook.Expires, outlook.Valid, outlook.Label, outlook.Label2, outlook.Stroke, outlook.Fill)
 		if err != nil {
 			return err
 		}
@@ -91,6 +86,7 @@ func (p *PostgresConvectiveOutlookTableV2) Select(issuedTime time.Time, outlookT
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	return p.processConvectiveOutlooks(rows)
 }
@@ -106,6 +102,7 @@ func (p *PostgresConvectiveOutlookTableV2) SelectById(id string) ([]data_structu
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	return p.processConvectiveOutlooks(rows)
 }
@@ -128,6 +125,7 @@ func (p *PostgresConvectiveOutlookTableV2) SelectLatest(outlookType golang.Conve
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	return p.processConvectiveOutlooks(rows)
 }

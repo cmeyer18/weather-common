@@ -26,9 +26,12 @@ func NewPostgresAlertV2SAMECodesTable(db *sql.DB) PostgresAlertV2SAMECodesTable 
 
 func (p *PostgresAlertV2SAMECodesTable) Insert(tx *sql.Tx, alertId string, codes []string) error {
 	for _, code := range codes {
-		query := `INSERT INTO alertV2_SAMECodes (alertId, code) VALUES ($1, $2)`
+		statement, err := tx.Prepare(`INSERT INTO alertV2_SAMECodes (alertId, code) VALUES ($1, $2)`)
+		if err != nil {
+			return err
+		}
 
-		_, err := tx.Exec(query, alertId, code)
+		_, err = statement.Exec(alertId, code)
 		if err != nil {
 			return err
 		}
@@ -38,18 +41,22 @@ func (p *PostgresAlertV2SAMECodesTable) Insert(tx *sql.Tx, alertId string, codes
 }
 
 func (p *PostgresAlertV2SAMECodesTable) SelectByAlertId(alertId string) ([]string, error) {
-	query := `SELECT code FROM alertV2_SAMECodes WHERE alertId = $1`
-
-	row, err := p.db.Query(query, alertId)
+	statement, err := p.db.Prepare(`SELECT code FROM alertV2_SAMECodes WHERE alertId = $1`)
 	if err != nil {
 		return nil, err
 	}
+	defer statement.Close()
+
+	rows, err := statement.Query(alertId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	var sameCodes []string
-	for row.Next() {
+	for rows.Next() {
 		var sameCode string
-
-		err := row.Scan(&sameCode)
+		err := rows.Scan(&sameCode)
 		if err != nil {
 			return nil, err
 		}
@@ -61,9 +68,13 @@ func (p *PostgresAlertV2SAMECodesTable) SelectByAlertId(alertId string) ([]strin
 }
 
 func (p *PostgresAlertV2SAMECodesTable) Delete(tx *sql.Tx, alertId string) error {
-	query := `DELETE FROM alertV2_SAMECodes WHERE alertId = $1`
+	statement, err := p.db.Prepare(`DELETE FROM alertV2_SAMECodes WHERE alertId = $1`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
 
-	_, err := tx.Exec(query, alertId)
+	_, err = statement.Exec(alertId)
 	if err != nil {
 		return err
 	}

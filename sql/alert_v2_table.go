@@ -77,9 +77,12 @@ func (p *PostgresAlertV2Table) Insert(alert data_structures.AlertV2) error {
 		return err
 	}
 
-	marshalledGeometryBytes, err := json.Marshal(alert.Geometry)
-	if err != nil {
-		return err
+	var marshalledGeometryBytes []byte
+	if alert.Geometry != nil {
+		marshalledGeometryBytes, err = json.Marshal(alert.Geometry)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = statement.Exec(
@@ -104,6 +107,7 @@ func (p *PostgresAlertV2Table) Insert(alert data_structures.AlertV2) error {
 			return err
 		}
 	}
+
 	if len(alert.References) != 0 {
 		err := p.referencesTable.Insert(tx, alert.ID, alert.References)
 		if err != nil {
@@ -175,8 +179,12 @@ func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	geocodeActiveAlerts, err := p.processAlertRows(rows)
+	if err != nil {
+		return nil, err
+	}
 
 	statement, err = p.db.Prepare(`
 	SELECT DISTINCT a.id, a.type, a.geometry::JSONB, a.areaDesc, a.sent, a.effective, a.onset, 
@@ -194,13 +202,16 @@ func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2
 	defer statement.Close()
 
 	pointString := fmt.Sprintf("POINT (%f %f)", point.Longitude, point.Latitude)
-
 	rows, err = statement.Query(pointString)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	geometryAlerts, err := p.processAlertRows(rows)
+	if err != nil {
+		return nil, err
+	}
 
 	activeAlerts := append(geocodeActiveAlerts, geometryAlerts...)
 
@@ -208,27 +219,31 @@ func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2
 }
 
 func (p *PostgresAlertV2Table) Exists(id string) (bool, error) {
-	query := `SELECT count(id) FROM alertV2 WHERE id = $1`
+	statement, err := p.db.Prepare(`SELECT count(id) FROM alertV2 WHERE id = $1`)
+	if err != nil {
+		return false, err
+	}
+	defer statement.Close()
 
-	row := p.db.QueryRow(query, id)
+	row := statement.QueryRow(id)
 
 	var count int
-	err := row.Scan(&count)
+	err = row.Scan(&count)
 	if err != nil {
 		return false, err
 	}
 
-	if count > 0 {
-		return true, nil
-	}
-
-	return false, nil
+	return count > 0, nil
 }
 
 func (p *PostgresAlertV2Table) Delete(id string) error {
-	query := `DELETE FROM alertV2 WHERE id = $1`
+	statement, err := p.db.Prepare(`DELETE FROM alertV2 WHERE id = $1`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
 
-	_, err := p.db.Exec(query, id)
+	_, err = statement.Exec(id)
 	if err != nil {
 		return err
 	}

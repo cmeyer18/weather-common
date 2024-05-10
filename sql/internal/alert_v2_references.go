@@ -26,9 +26,13 @@ func NewPostgresAlertV2ReferencesTable(db *sql.DB) PostgresAlertV2ReferencesTabl
 
 func (p *PostgresAlertV2ReferencesTable) Insert(tx *sql.Tx, alertId string, referencedAlertIds []string) error {
 	for _, referencedAlertId := range referencedAlertIds {
-		query := `INSERT INTO alertV2_References (alertId, referenceId) VALUES ($1, $2)`
+		statement, err := tx.Prepare(`INSERT INTO alertV2_References (alertId, referenceId) VALUES ($1, $2)`)
+		if err != nil {
+			return err
+		}
+		defer statement.Close()
 
-		_, err := tx.Exec(query, alertId, referencedAlertId)
+		_, err = statement.Exec(alertId, referencedAlertId)
 		if err != nil {
 			return err
 		}
@@ -38,18 +42,22 @@ func (p *PostgresAlertV2ReferencesTable) Insert(tx *sql.Tx, alertId string, refe
 }
 
 func (p *PostgresAlertV2ReferencesTable) SelectByAlertId(alertId string) ([]string, error) {
-	query := `SELECT referenceId FROM alertV2_References WHERE alertId = $1`
-
-	row, err := p.db.Query(query, alertId)
+	statement, err := p.db.Prepare(`SELECT referenceId FROM alertV2_References WHERE alertId = $1`)
 	if err != nil {
 		return nil, err
 	}
+	defer statement.Close()
+
+	rows, err := statement.Query(alertId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	var referenceIds []string
-	for row.Next() {
+	for rows.Next() {
 		var referenceId string
-
-		err := row.Scan(&referenceId)
+		err := rows.Scan(&referenceId)
 		if err != nil {
 			return nil, err
 		}
@@ -61,9 +69,13 @@ func (p *PostgresAlertV2ReferencesTable) SelectByAlertId(alertId string) ([]stri
 }
 
 func (p *PostgresAlertV2ReferencesTable) Delete(tx *sql.Tx, alertId string) error {
-	query := `DELETE FROM alertV2_References WHERE alertId = $1`
+	statement, err := p.db.Prepare(`DELETE FROM alertV2_References WHERE alertId = $1`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
 
-	_, err := tx.Exec(query, alertId)
+	_, err = tx.Exec(alertId)
 	if err != nil {
 		return err
 	}
