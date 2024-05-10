@@ -186,7 +186,7 @@ func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2
 		return nil, err
 	}
 
-	statement, err = p.db.Prepare(`
+	statement2, err := p.db.Prepare(`
 	SELECT DISTINCT a.id, a.type, a.geometry::JSONB, a.areaDesc, a.sent, a.effective, a.onset, 
 		a.expires, a.ends, a.status, a.messageType, a.category, a.severity, 
 		a.certainty, a.urgency, a.event, a.sender, a.senderName, a.headline, 
@@ -199,16 +199,16 @@ func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2
 	if err != nil {
 		return nil, err
 	}
-	defer statement.Close()
+	defer statement2.Close()
 
 	pointString := fmt.Sprintf("POINT (%f %f)", point.Longitude, point.Latitude)
-	rows, err = statement.Query(pointString)
+	rows2, err := statement2.Query(pointString)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows2.Close()
 
-	geometryAlerts, err := p.processAlertRows(rows)
+	geometryAlerts, err := p.processAlertRows(rows2)
 	if err != nil {
 		return nil, err
 	}
