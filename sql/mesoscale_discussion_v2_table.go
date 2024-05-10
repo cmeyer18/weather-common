@@ -51,7 +51,7 @@ func (p *PostgresMesoscaleDiscussionV2Table) Insert(md data_structures.Mesoscale
 
 	var marshalledGeometryBytes []byte
 	if md.Geometry != nil {
-		marshalledGeometryBytes, err = json.Marshal(md.Geometry)
+		marshalledGeometryBytes, err = json.Marshal(&md.Geometry)
 		if err != nil {
 			return err
 		}

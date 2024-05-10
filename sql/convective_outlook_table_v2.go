@@ -55,7 +55,7 @@ func (p *PostgresConvectiveOutlookTableV2) Insert(outlooks []data_structures.Con
 
 		var marshalledGeometryBytes []byte
 		if outlook.Geometry != nil {
-			marshalledGeometryBytes, err = json.Marshal(outlook.Geometry)
+			marshalledGeometryBytes, err = json.Marshal(&outlook.Geometry)
 			if err != nil {
 				return err
 			}
