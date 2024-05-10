@@ -74,29 +74,26 @@ func (g *Geometry) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	coordinates, ok := raw["coordinates"]
-	if !ok {
-		return fmt.Errorf("missing coordinates for Point geometry")
-	}
+	coordinates, _ := raw["coordinates"]
 
 	switch g.Type {
 	case "Point":
-		err := json.Unmarshal(coordinates, g.Point)
+		err := json.Unmarshal(coordinates, &g.Point)
 		if err != nil {
 			return err
 		}
 	case "MultiPoint":
-		err := json.Unmarshal(coordinates, g.MultiPoint)
+		err := json.Unmarshal(coordinates, &g.MultiPoint)
 		if err != nil {
 			return err
 		}
 	case "Polygon":
-		err := json.Unmarshal(coordinates, g.Polygon)
+		err := json.Unmarshal(coordinates, &g.Polygon)
 		if err != nil {
 			return err
 		}
 	case "MultiPolygon":
-		err := json.Unmarshal(coordinates, g.MultiPolygon)
+		err := json.Unmarshal(coordinates, &g.MultiPolygon)
 		if err != nil {
 			return err
 		}

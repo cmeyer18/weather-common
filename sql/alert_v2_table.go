@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"regexp"
 
 	"github.com/lib/pq"
 
@@ -54,19 +53,19 @@ func (p *PostgresAlertV2Table) Insert(alert data_structures.AlertV2) error {
 	defer tx.Rollback()
 
 	statement, err := tx.Prepare(`INSERT INTO alertV2 (
-		id, type, geometry, areaDesc, sent, effective, onset, 
-		expires, ends, status, messageType, category, severity, 
-		certainty, urgency, event, sender, senderName, headline, 
-		description, instruction, response, parameters
+		id, type, geometry, areaDesc, sent, 
+		effective, onset, expires, ends, status, 
+		messageType, category, severity, certainty, urgency, 
+		event, sender, senderName, headline, description,
+	 	instruction, response, parameters
 	) 
 	VALUES (
 		$1, $2, 
 		CASE 
-			WHEN $3::TEXT IS NULL OR $3::TEXT = '' OR  jsonb_typeof($3::JSONB) = 'null' THEN NULL 
+			WHEN $3::TEXT IS NULL OR $3::TEXT = '' OR jsonb_typeof($3::JSONB) = 'null' THEN NULL 
 			ELSE ST_GeomFromGeoJSON($3::JSONB) 
     	END,
-		$4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 
-		$14, $15, $16, $17, $18, $19, $20, $21, $22, $23
+		$4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
 	);`)
 	if err != nil {
 		return err
@@ -83,15 +82,12 @@ func (p *PostgresAlertV2Table) Insert(alert data_structures.AlertV2) error {
 		return err
 	}
 
-	// Clean up the json, SQL doesn't like these escape characters.
-	pattern := regexp.MustCompile(`\\+`)
-	unescapedString := pattern.ReplaceAllString(string(marshalledGeometryBytes), "")
-
 	_, err = statement.Exec(
-		alert.ID, alert.Type, unescapedString, alert.AreaDesc, alert.Sent, alert.Effective,
-		alert.Onset, alert.Expires, alert.Ends, alert.Status, alert.MessageType, alert.Category,
-		alert.Severity, alert.Certainty, alert.Urgency, alert.Event, alert.Sender, alert.SenderName,
-		alert.Headline, alert.Description, alert.Instruction, alert.Response, marshalledParameters,
+		alert.ID, alert.Type, marshalledGeometryBytes, alert.AreaDesc, alert.Sent,
+		alert.Effective, alert.Onset, alert.Expires, alert.Ends, alert.Status,
+		alert.MessageType, alert.Category, alert.Severity, alert.Certainty, alert.Urgency,
+		alert.Event, alert.Sender, alert.SenderName, alert.Headline, alert.Description,
+		alert.Instruction, alert.Response, marshalledParameters,
 	)
 	if err != nil {
 		return err
@@ -102,6 +98,7 @@ func (p *PostgresAlertV2Table) Insert(alert data_structures.AlertV2) error {
 		if err != nil {
 			return err
 		}
+
 		err = p.ugcTable.Insert(tx, alert.ID, alert.Geocode.UGC)
 		if err != nil {
 			return err
