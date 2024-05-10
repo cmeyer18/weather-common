@@ -6,55 +6,52 @@ import (
 )
 
 type Geometry struct {
-	Type         string
-	Point        *Point
-	MultiPoint   *MultiPoint
-	Polygon      *Polygon
-	MultiPolygon *MultiPolygon
+	Point              *Point
+	MultiPoint         *MultiPoint
+	Polygon            *Polygon
+	MultiPolygon       *MultiPolygon
+	GeometryCollection *GeometryCollection
 }
 
 func (g *Geometry) MarshalJSON() ([]byte, error) {
-	if g == nil || g.Type == "" {
+	if g == nil {
 		return []byte("null"), nil
 	}
 
-	switch g.Type {
-	case "Point":
+	if g.Point != nil {
 		return json.Marshal(struct {
 			Type        string `json:"type"`
 			Coordinates *Point `json:"coordinates"`
 		}{
-			Type:        g.Type,
+			Type:        "Point",
 			Coordinates: g.Point,
 		})
-	case "MultiPoint":
+	} else if g.MultiPoint != nil {
 		return json.Marshal(struct {
 			Type        string      `json:"type"`
 			Coordinates *MultiPoint `json:"coordinates"`
 		}{
-			Type:        g.Type,
+			Type:        "MultiPoint",
 			Coordinates: g.MultiPoint,
 		})
-	case "Polygon":
+	} else if g.Polygon != nil {
 		return json.Marshal(struct {
 			Type        string   `json:"type"`
 			Coordinates *Polygon `json:"coordinates"`
 		}{
-			Type:        g.Type,
+			Type:        "Polygon",
 			Coordinates: g.Polygon,
 		})
-	case "MultiPolygon":
+	} else if g.MultiPolygon != nil {
 		return json.Marshal(struct {
 			Type        string        `json:"type"`
 			Coordinates *MultiPolygon `json:"coordinates"`
 		}{
-			Type:        g.Type,
+			Type:        "MultiPolygon",
 			Coordinates: g.MultiPolygon,
 		})
-	case "GeometryCollection":
+	} else {
 		return []byte("null"), nil
-	default:
-		return nil, fmt.Errorf("unsupported geometry type: %s", g.Type)
 	}
 }
 
@@ -69,14 +66,15 @@ func (g *Geometry) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	err = json.Unmarshal(raw["type"], &g.Type)
+	var geometryType string
+	err = json.Unmarshal(raw["type"], &geometryType)
 	if err != nil {
 		return err
 	}
 
 	coordinates, _ := raw["coordinates"]
 
-	switch g.Type {
+	switch geometryType {
 	case "Point":
 		err := json.Unmarshal(coordinates, &g.Point)
 		if err != nil {
@@ -98,8 +96,9 @@ func (g *Geometry) UnmarshalJSON(data []byte) error {
 			return err
 		}
 	case "GeometryCollection":
+		g.GeometryCollection = &GeometryCollection{}
 	default:
-		return fmt.Errorf("unsupported geometry type: %s", g.Type)
+		return fmt.Errorf("unsupported geometry type: %s", geometryType)
 	}
 
 	return nil

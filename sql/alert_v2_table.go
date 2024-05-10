@@ -79,7 +79,7 @@ func (p *PostgresAlertV2Table) Insert(alert data_structures.AlertV2) error {
 
 	var marshalledGeometryBytes []byte
 	if alert.Geometry != nil {
-		marshalledGeometryBytes, err = json.Marshal(alert.Geometry)
+		marshalledGeometryBytes, err = json.Marshal(&alert.Geometry)
 		if err != nil {
 			return err
 		}
