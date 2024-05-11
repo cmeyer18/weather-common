@@ -10,6 +10,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 
+	"github.com/cmeyer18/weather-common/v4/sql/db_migrations/v4/data_migrations"
 	"github.com/cmeyer18/weather-common/v4/sql/db_migrations/v4/enviornment"
 )
 
@@ -37,6 +38,16 @@ func main() {
 
 	err = m.Up()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		log.Fatal(err)
+		return
+	}
+
+	migrator := data_migrations.Migrator{
+		DB: db,
+	}
+
+	err = migrator.MigrateAlerts()
+	if err != nil {
 		log.Fatal(err)
 		return
 	}
