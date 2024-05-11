@@ -55,6 +55,7 @@ func (m *Migrator) MigrateAlerts() error {
 func GetAlertV2(a data_structures.Alert) data_structures.AlertV2 {
 	var geocode *data_structures.AlertPropertiesGeocodeV2
 	if a.Properties.Geocode != nil {
+		geocode := data_structures.AlertPropertiesGeocodeV2{}
 		if a.Properties.Geocode.UGC != nil {
 			geocode.UGC = make([]string, len(a.Properties.Geocode.UGC))
 			for i, ugc := range a.Properties.Geocode.UGC {
@@ -114,6 +115,10 @@ func GetAlertV2(a data_structures.Alert) data_structures.AlertV2 {
 }
 
 func GetGeometryV2(g *geojson.Geometry) *geojson_v2.Geometry {
+	if g == nil {
+		return nil
+	}
+
 	if g.Polygon != nil {
 		return &geojson_v2.Geometry{
 			Polygon: GetPolygonV2(g.Polygon),
