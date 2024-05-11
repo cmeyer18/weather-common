@@ -17,7 +17,7 @@ type Migrator struct {
 func (m *Migrator) MigrateAlerts() error {
 	alertV2Table := table.NewPostgresAlertV2Table(m.DB)
 
-	statement, err := m.DB.Prepare(`SELECT FROM alerts`)
+	statement, err := m.DB.Prepare(`SELECT payload FROM alerts`)
 	if err != nil {
 		return err
 	}
