@@ -165,6 +165,8 @@ func GetPolygonV2(p *geojson.Polygon) *geojson_v2.Polygon {
 }
 
 func GetMultiPointV2(m *geojson.MultiPoint) geojson_v2.MultiPoint {
+	println("cdm GetMultiPointV2 " + spew.Sdump(m))
+
 	v2 := geojson_v2.MultiPoint{
 		Points: make([]*geojson_v2.Point, len(m.Points)),
 	}
