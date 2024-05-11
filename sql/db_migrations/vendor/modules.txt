@@ -7,6 +7,9 @@ github.com/cmeyer18/weather-common/v4/generative/golang
 github.com/cmeyer18/weather-common/v4/sql
 github.com/cmeyer18/weather-common/v4/sql/internal
 github.com/cmeyer18/weather-common/v4/sql/internal/common_tables
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+github.com/davecgh/go-spew/spew
 # github.com/golang-migrate/migrate/v4 v4.17.0
 ## explicit; go 1.18
 github.com/golang-migrate/migrate/v4

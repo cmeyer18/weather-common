@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/cmeyer18/weather-common/v4/data_structures"
 	"github.com/cmeyer18/weather-common/v4/data_structures/geojson"
 	"github.com/cmeyer18/weather-common/v4/data_structures/geojson_v2"
@@ -53,6 +55,8 @@ func (m *Migrator) MigrateAlerts() error {
 }
 
 func GetAlertV2(a data_structures.Alert) data_structures.AlertV2 {
+	println("cdm converting alert: " + spew.Sdump(a))
+
 	var geocode *data_structures.AlertPropertiesGeocodeV2
 	if a.Properties.Geocode != nil {
 		geocode := data_structures.AlertPropertiesGeocodeV2{}
