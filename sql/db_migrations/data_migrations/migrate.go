@@ -171,8 +171,10 @@ func GetMultiPointV2(m *geojson.MultiPoint) geojson_v2.MultiPoint {
 		Points: make([]*geojson_v2.Point, len(m.Points)),
 	}
 	for i, point := range m.Points {
-		v2.Points[i].Longitude = point.Longitude
-		v2.Points[i].Latitude = point.Latitude
+		v2.Points[i] = &geojson_v2.Point{
+			Longitude: point.Longitude,
+			Latitude:  point.Latitude,
+		}
 	}
 
 	return v2
