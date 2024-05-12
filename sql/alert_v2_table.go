@@ -297,7 +297,7 @@ func (p *PostgresAlertV2Table) processAlertRows(rows *sql.Rows) ([]data_structur
 			}
 		}
 
-		alert.References, err = p.ugcTable.SelectByAlertId(alert.ID)
+		alert.References, err = p.referencesTable.SelectByAlertId(alert.ID)
 		if err != nil {
 			return nil, err
 		}
