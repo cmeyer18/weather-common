@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/cmeyer18/weather-common/v4/data_structures"
 	"github.com/cmeyer18/weather-common/v4/data_structures/geojson"
 	"github.com/cmeyer18/weather-common/v4/data_structures/geojson_v2"
@@ -43,6 +41,11 @@ func (m *Migrator) MigrateAlerts() error {
 			return err
 		}
 
+		exists, err := alertV2Table.Exists(alert.ID)
+		if exists {
+			continue
+		}
+
 		alertV2 := GetAlertV2(alert)
 
 		err = alertV2Table.Insert(alertV2)
@@ -55,8 +58,6 @@ func (m *Migrator) MigrateAlerts() error {
 }
 
 func GetAlertV2(a data_structures.Alert) data_structures.AlertV2 {
-	println("cdm converting alert: " + spew.Sdump(a))
-
 	var geocode *data_structures.AlertPropertiesGeocodeV2
 	if a.Properties.Geocode != nil {
 		geocode := data_structures.AlertPropertiesGeocodeV2{}
@@ -165,8 +166,6 @@ func GetPolygonV2(p *geojson.Polygon) *geojson_v2.Polygon {
 }
 
 func GetMultiPointV2(m *geojson.MultiPoint) geojson_v2.MultiPoint {
-	println("cdm GetMultiPointV2 " + spew.Sdump(m))
-
 	v2 := geojson_v2.MultiPoint{
 		Points: make([]*geojson_v2.Point, len(m.Points)),
 	}

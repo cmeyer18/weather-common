@@ -4,7 +4,6 @@ go 1.22
 
 require (
 	github.com/cmeyer18/weather-common/v4 v4.4.0
-	github.com/davecgh/go-spew v1.1.1
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/lib/pq v1.10.9
 )
