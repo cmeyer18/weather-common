@@ -163,13 +163,11 @@ func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2
             a.certainty, a.urgency, a.event, a.sender, a.senderName, a.headline, 
             a.description, a.instruction, a.response, a.parameters 
 	FROM alertV2 a
-		LEFT JOIN alertV2_SAMECodes same ON a.id = same.alertId
 		LEFT JOIN alertV2_UGCCodes ugc ON a.id = ugc.alertId
 	WHERE 
 	    a.geometry IS NULL AND
-		a.ends >= NOW() AND (
-		same.code = ANY($1::VARCHAR[]) OR 
-		ugc.code = ANY($1::VARCHAR[]));`)
+		a.ends >= NOW() AND 
+		ugc.code = ANY($1::VARCHAR[]);`)
 	if err != nil {
 		return nil, err
 	}
