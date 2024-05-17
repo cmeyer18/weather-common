@@ -53,7 +53,7 @@ jobs:
           password: ${{ secrets.GITEA_PAT }}
 
       - name: Build docker image
-        run: docker build . -t cdmeyer/weather-db-migrations:${{github.run_number}}
+        run: docker build . -t git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{github.run_number}}
         working-directory: sql/db_migrations
 
       - name: Create docker tags
