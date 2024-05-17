@@ -38,11 +38,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.5
 
+      - name: Login to Tailscale
+        uses: tailscale/github-action@main
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
       - name: Login to docker
         uses: docker/login-action@v3.1.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.GITEA_USERNAME }}
+          password: ${{ secrets.GITEA_PAT }}
 
       - name: Build docker image
         run: docker build . -t cdmeyer/weather-db-migrations:${{github.run_number}}
@@ -51,14 +58,14 @@ jobs:
       - name: Create docker tags
         if: github.ref == 'refs/heads/master'
         run: |
-          docker tag cdmeyer/weather-db-migrations:${{github.run_number}} cdmeyer/weather-db-migrations:${{ needs.build.outputs.version }}
-          docker tag cdmeyer/weather-db-migrations:${{github.run_number}} cdmeyer/weather-db-migrations:latest-release
+          docker tag git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{github.run_number}} git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{ needs.build.outputs.version }}
+          docker tag git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{github.run_number}} git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:latest-release
 
       - name: Push build tag
-        run: docker push cdmeyer/weather-db-migrations:${{github.run_number}}
+        run: docker push git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{github.run_number}}
 
       - name: Push release tags
         if: github.ref == 'refs/heads/master'
         run: |
-          docker push cdmeyer/weather-db-migrations:${{ needs.build.outputs.version }}
-          docker push cdmeyer/weather-db-migrations:latest-release
+          docker push git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{ needs.build.outputs.version }}
+          docker push git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:latest-release
