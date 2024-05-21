@@ -34,7 +34,7 @@ func NewPostgresMesoscaleDiscussionV2Table(db *sql.DB) PostgresMesoscaleDiscussi
 func (p *PostgresMesoscaleDiscussionV2Table) Insert(md data_structures.MesoscaleDiscussionV2) error {
 	//language=SQL
 	statement, err := p.db.Prepare(`
-		INSERT INTO mesoscaleDiscussionV2 (id, number, year, geometry, rawText, probabilityOfWatchIssuance, valid, expires) 
+		INSERT INTO mesoscaleDiscussionV2 (id, number, year, geometry, rawText, probabilityOfWatchIssuance, effective, expires) 
 		VALUES (
 		$1, 
 		$2, 
@@ -69,7 +69,7 @@ func (p *PostgresMesoscaleDiscussionV2Table) Insert(md data_structures.Mesoscale
 }
 
 func (p *PostgresMesoscaleDiscussionV2Table) Select(year, mdNumber int) (*data_structures.MesoscaleDiscussionV2, error) {
-	statement, err := p.db.Prepare(`SELECT id, number, year, geometry::JSONB, rawText FROM mesoscaleDiscussionV2 WHERE year = $1 AND mdNumber = $2`)
+	statement, err := p.db.Prepare(`SELECT id, number, year, geometry::JSONB, rawText, probabilityOfWatchIssuance, effective, expires FROM mesoscaleDiscussionV2 WHERE year = $1 AND mdNumber = $2`)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +84,9 @@ func (p *PostgresMesoscaleDiscussionV2Table) Select(year, mdNumber int) (*data_s
 		&md.Year,
 		&marshalledGeometry,
 		&md.RawText,
+		&md.ProbabilityOfWatchIssuance,
+		&md.Effective,
+		&md.Expires,
 	)
 	if err != nil {
 		return nil, err
@@ -100,7 +103,7 @@ func (p *PostgresMesoscaleDiscussionV2Table) Select(year, mdNumber int) (*data_s
 }
 
 func (p *PostgresMesoscaleDiscussionV2Table) SelectById(id string) (*data_structures.MesoscaleDiscussionV2, error) {
-	statement, err := p.db.Prepare(`SELECT id, number, year, geometry::JSONB, rawText FROM mesoscaleDiscussionV2 WHERE id = $1`)
+	statement, err := p.db.Prepare(`SELECT id, number, year, geometry::JSONB, rawText, probabilityOfWatchIssuance, effective, expires FROM mesoscaleDiscussionV2 WHERE id = $1`)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +118,9 @@ func (p *PostgresMesoscaleDiscussionV2Table) SelectById(id string) (*data_struct
 		&md.Year,
 		&marshalledGeometry,
 		&md.RawText,
+		&md.ProbabilityOfWatchIssuance,
+		&md.Effective,
+		&md.Expires,
 	)
 	if err != nil {
 		return nil, err
