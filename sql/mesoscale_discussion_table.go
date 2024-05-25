@@ -12,6 +12,7 @@ import (
 
 var _ IPostgresMesoscaleDiscussionTable = (*PostgresMesoscaleDiscussionTable)(nil)
 
+// Deprecated: use IPostgresMesoscaleDiscussionTableV2
 type IPostgresMesoscaleDiscussionTable interface {
 	Insert(md data_structures.MesoscaleDiscussion) error
 
@@ -20,16 +21,19 @@ type IPostgresMesoscaleDiscussionTable interface {
 	SelectMDNotInTable(year int, mdsToCheck map[int]bool) ([]int, error)
 }
 
+// Deprecated: use PostgresMesoscaleDiscussionTableV2
 type PostgresMesoscaleDiscussionTable struct {
 	db *sql.DB
 }
 
+// Deprecated: use NewPostgresMesoscaleDicussionTableV2
 func NewPostgresMesoscaleDicussionTable(db *sql.DB) PostgresMesoscaleDiscussionTable {
 	return PostgresMesoscaleDiscussionTable{
 		db: db,
 	}
 }
 
+// Deprecated:
 func (p *PostgresMesoscaleDiscussionTable) Insert(md data_structures.MesoscaleDiscussion) error {
 	//language=SQL
 	query := `INSERT INTO mesoscaleDiscussion (mdNumber, year, affectedArea, rawText) VALUES ($1, $2, $3, $4)`
@@ -47,6 +51,7 @@ func (p *PostgresMesoscaleDiscussionTable) Insert(md data_structures.MesoscaleDi
 	return nil
 }
 
+// Deprecated:
 func (p *PostgresMesoscaleDiscussionTable) Select(year, mdNumber int) (*data_structures.MesoscaleDiscussion, error) {
 	query := `SELECT mdNumber, year, affectedArea, rawText FROM mesoscaleDiscussion WHERE year = $1 AND mdNumber = $2`
 
@@ -76,6 +81,7 @@ func (p *PostgresMesoscaleDiscussionTable) Select(year, mdNumber int) (*data_str
 	return &md, nil
 }
 
+// Deprecated:
 func (p *PostgresMesoscaleDiscussionTable) SelectMDNotInTable(year int, mdsToCheck map[int]bool) ([]int, error) {
 	query := `SELECT mdNumber FROM mesoscaleDiscussion WHERE year = $1`
 
@@ -104,6 +110,7 @@ func (p *PostgresMesoscaleDiscussionTable) SelectMDNotInTable(year int, mdsToChe
 	return mdsNotInTable, nil
 }
 
+// Deprecated:
 func (p *PostgresMesoscaleDiscussionTable) Delete(year, mdNumber int) error {
 	query := `DELETE FROM mesoscaleDiscussion WHERE year = $1 AND mdNumber = $2`
 
