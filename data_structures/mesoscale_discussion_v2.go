@@ -3,7 +3,7 @@ package data_structures
 import (
 	"time"
 
-	"github.com/cmeyer18/weather-common/v4/data_structures/geojson_v2"
+	"github.com/cmeyer18/weather-common/v5/data_structures/geojson_v2"
 )
 
 type MesoscaleDiscussionV2 struct {

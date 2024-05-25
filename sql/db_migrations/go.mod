@@ -1,4 +1,4 @@
-module github.com/cmeyer18/weather-common/v4/sql/db_migrations/v4
+module github.com/cmeyer18/weather-common/v5/sql/db_migrations/v5
 
 go 1.22
 

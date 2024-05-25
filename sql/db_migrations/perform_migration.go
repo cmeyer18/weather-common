@@ -10,7 +10,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 
-	"github.com/cmeyer18/weather-common/v4/sql/db_migrations/v4/enviornment"
+	"github.com/cmeyer18/weather-common/v5/sql/db_migrations/v5/enviornment"
 )
 
 func main() {

@@ -3,7 +3,7 @@ package data_structures
 import (
 	"time"
 
-	"github.com/cmeyer18/weather-common/v4/generative/golang"
+	"github.com/cmeyer18/weather-common/v5/generative/golang"
 )
 
 type UserNotification struct {

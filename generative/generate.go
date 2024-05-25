@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/cmeyer18/weather-common/v4/generative/generators/golang"
-	"github.com/cmeyer18/weather-common/v4/generative/generators/swift"
+	"github.com/cmeyer18/weather-common/v5/generative/generators/golang"
+	"github.com/cmeyer18/weather-common/v5/generative/generators/swift"
 )
 
 func main() {

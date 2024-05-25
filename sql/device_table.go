@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/cmeyer18/weather-common/v4/data_structures"
-	"github.com/cmeyer18/weather-common/v4/sql/internal/common_tables"
+	"github.com/cmeyer18/weather-common/v5/data_structures"
+	"github.com/cmeyer18/weather-common/v5/sql/internal/common_tables"
 )
 
 var _ IDeviceTable = (*PostgresDeviceTable)(nil)
