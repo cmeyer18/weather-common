@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/cmeyer18/weather-common/v4/data_structures"
+	"github.com/cmeyer18/weather-common/v4/data_structures/geojson_v2"
 	"github.com/cmeyer18/weather-common/v4/generative/golang"
 )
 
@@ -20,6 +22,10 @@ type IConvectiveOutlookTableV2 interface {
 	SelectById(id string) ([]data_structures.ConvectiveOutlookV2, error)
 
 	SelectLatest(outlookType golang.ConvectiveOutlookType) ([]data_structures.ConvectiveOutlookV2, error)
+
+	SelectAllLatest() (map[golang.ConvectiveOutlookType][]data_structures.ConvectiveOutlookV2, error)
+
+	SelectAllLatestByLocation(point geojson_v2.Point) ([]data_structures.ConvectiveOutlookV2, error)
 }
 
 type PostgresConvectiveOutlookTableV2 struct {
@@ -122,6 +128,93 @@ func (p *PostgresConvectiveOutlookTableV2) SelectLatest(outlookType golang.Conve
 	defer statement.Close()
 
 	rows, err := statement.Query(string(outlookType))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return p.processConvectiveOutlooks(rows)
+}
+
+func (p *PostgresConvectiveOutlookTableV2) SelectAllLatest() (map[golang.ConvectiveOutlookType][]data_structures.ConvectiveOutlookV2, error) {
+	statement, err := p.db.Prepare(`
+	WITH latest_issued AS (
+		SELECT
+			outlookType,
+			MAX(issued) AS latestIssueTime
+		FROM
+			convectiveOutlookV2
+		GROUP BY
+			outlookType
+	)
+	SELECT
+		c.*
+	FROM
+		convectiveOutlookV2 c
+	INNER JOIN
+		latest_issued l
+	ON
+		c.outlookType = l.outlookType
+		AND c.issued = l.latestIssueTime
+	ORDER BY
+		c.outlookType ASC, c.dn ASC;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	rows, err := statement.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	processedRows, err := p.processConvectiveOutlooks(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	convectiveOutlookMap := make(map[golang.ConvectiveOutlookType][]data_structures.ConvectiveOutlookV2)
+	for _, processedRow := range processedRows {
+		convectiveOutlookMap[processedRow.OutlookType] = append(convectiveOutlookMap[processedRow.OutlookType], processedRow)
+	}
+
+	return convectiveOutlookMap, nil
+}
+
+func (p *PostgresConvectiveOutlookTableV2) SelectAllLatestByLocation(point geojson_v2.Point) ([]data_structures.ConvectiveOutlookV2, error) {
+	statement, err := p.db.Prepare(`
+	WITH latest_issued AS (
+		SELECT
+			outlookType,
+			MAX(issued) AS latestIssueTime
+		FROM
+			convectiveOutlookV2
+		GROUP BY
+			outlookType
+	)
+	SELECT
+		c.*
+	FROM
+		convectiveOutlookV2 c
+	INNER JOIN
+		latest_issued l
+	ON
+		c.outlookType = l.outlookType
+		AND c.issued = l.latestIssueTime
+	WHERE 
+		ST_Contains(c.geometry, ST_GeomFromText($1, 4326))
+	ORDER BY
+		c.outlookType ASC, c.dn ASC;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	pointString := fmt.Sprintf("POINT (%f %f)", point.Longitude, point.Latitude)
+	rows, err := statement.Query(pointString)
 	if err != nil {
 		return nil, err
 	}
