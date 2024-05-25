@@ -3,7 +3,7 @@ package sql
 import (
 	"database/sql"
 
-	"github.com/cmeyer18/weather-common/v4/data_structures"
+	"github.com/cmeyer18/weather-common/v5/data_structures"
 )
 
 var _ INotificationQueries = (*PostgresNotificationQueries)(nil)

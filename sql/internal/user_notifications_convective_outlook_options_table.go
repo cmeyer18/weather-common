@@ -3,7 +3,7 @@ package internal
 import (
 	"database/sql"
 
-	"github.com/cmeyer18/weather-common/v4/generative/golang"
+	"github.com/cmeyer18/weather-common/v5/generative/golang"
 )
 
 var _ IUserNotificationConvectiveOutlookOptionTable = (*PostgresUserNotificationConvectiveOutlookOptionTable)(nil)
