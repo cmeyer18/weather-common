@@ -6,6 +6,7 @@ import (
 	"github.com/cmeyer18/weather-common/v4/data_structures/geojson"
 )
 
+// Deprecated: use AlertV2
 type Alert struct {
 	ID         string            `json:"id"`
 	Type       string            `json:"type"`
@@ -13,6 +14,7 @@ type Alert struct {
 	Properties AlertProperties   `json:"properties"`
 }
 
+// Deprecated: use AlertV2
 type AlertProperties struct {
 	AtID          string                       `json:"@id"`
 	Type          string                       `json:"@type"`
@@ -42,11 +44,13 @@ type AlertProperties struct {
 	Parameters    AlertPropertiesParameters    `json:"parameters"`
 }
 
+// Deprecated: use AlertV2
 type AlertPropertiesGeocode struct {
 	SAME []string `json:"SAME"`
 	UGC  []string `json:"UGC"`
 }
 
+// Deprecated: use AlertV2
 type AlertPropertiesParameters struct {
 	AWIPSIdentifier   []string `json:"AWIPSidentifier"`
 	WMOIdentifier     []string `json:"WMOidentifier"`
@@ -56,6 +60,7 @@ type AlertPropertiesParameters struct {
 	ExpiredReferences []string `json:"expiredReferences"`
 }
 
+// Deprecated: use AlertV2
 type AlertPropertiesReferences struct {
 	AtID       string    `json:"@id"`
 	Identifier string    `json:"identifier"`

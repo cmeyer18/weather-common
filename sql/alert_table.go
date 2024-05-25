@@ -15,6 +15,7 @@ import (
 
 var _ IAlertTable = (*PostgresAlertTable)(nil)
 
+// Deprecated: use IAlertTableV2
 type IAlertTable interface {
 	common_tables.IIdTable[data_structures.Alert]
 
@@ -25,16 +26,19 @@ type IAlertTable interface {
 	Exists(id string) (bool, error)
 }
 
+// Deprecated: use PostgresAlertTableV2
 type PostgresAlertTable struct {
 	db *sql.DB
 }
 
+// Deprecated: use NewPostgresAlertTableV2
 func NewPostgresAlertTable(db *sql.DB) PostgresAlertTable {
 	return PostgresAlertTable{
 		db: db,
 	}
 }
 
+// Deprecated:
 func (p *PostgresAlertTable) Insert(alert data_structures.Alert) error {
 	//language=SQL
 	query := `INSERT INTO alerts (id, payload) VALUES ($1, $2)`
@@ -52,6 +56,7 @@ func (p *PostgresAlertTable) Insert(alert data_structures.Alert) error {
 	return nil
 }
 
+// Deprecated:
 func (p *PostgresAlertTable) Select(id string) (*data_structures.Alert, error) {
 	query := `SELECT payload FROM alerts WHERE id = $1`
 
@@ -71,6 +76,7 @@ func (p *PostgresAlertTable) Select(id string) (*data_structures.Alert, error) {
 	return &alert, nil
 }
 
+// Deprecated:
 func (p *PostgresAlertTable) SelectAlertsByCode(codes []string) ([]data_structures.Alert, error) {
 	query := `
 		SELECT payload
@@ -111,6 +117,7 @@ func (p *PostgresAlertTable) SelectAlertsByCode(codes []string) ([]data_structur
 	return alerts, nil
 }
 
+// Deprecated:
 func (p *PostgresAlertTable) Exists(id string) (bool, error) {
 	query := `SELECT count(id) FROM alerts WHERE id = $1`
 
@@ -129,6 +136,7 @@ func (p *PostgresAlertTable) Exists(id string) (bool, error) {
 	return false, nil
 }
 
+// Deprecated:
 func (p *PostgresAlertTable) Delete(id string) error {
 	query := `DELETE FROM alerts WHERE id = $1`
 
@@ -149,6 +157,7 @@ func (p *PostgresAlertTable) Delete(id string) error {
 	return nil
 }
 
+// Deprecated:
 func (p *PostgresAlertTable) DeleteExpiredAlerts(id string) error {
 	query := `DELETE FROM alerts WHERE id = $1`
 

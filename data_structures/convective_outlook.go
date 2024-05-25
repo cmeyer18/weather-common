@@ -7,6 +7,7 @@ import (
 	"github.com/cmeyer18/weather-common/v4/generative/golang"
 )
 
+// Deprecated: use ConvectiveOutlookV2
 type ConvectiveOutlook struct {
 	Type          string                       `json:"type"`
 	PublishedTime time.Time                    `json:"publishedTime"`
@@ -14,12 +15,14 @@ type ConvectiveOutlook struct {
 	Features      []ConvectiveOutlookFeature   `json:"features"`
 }
 
+// Deprecated: use ConvectiveOutlookV2
 type ConvectiveOutlookFeature struct {
 	Type       string                             `json:"type"`
 	Geometry   *geojson.Geometry                  `json:"geometry"`
 	Properties ConvectiveOutlookFeatureProperties `json:"properties"`
 }
 
+// Deprecated: use ConvectiveOutlookV2
 type ConvectiveOutlookFeatureProperties struct {
 	DN     int       `json:"DN"`
 	Valid  time.Time `json:"VALID"`

@@ -12,6 +12,7 @@ import (
 
 var _ IConvectiveOutlookTable = (*PostgresConvectiveOutlookTable)(nil)
 
+// Deprecated: use IConvectiveOutlookTableV2
 type IConvectiveOutlookTable interface {
 	Insert(outlook data_structures.ConvectiveOutlook) error
 
@@ -20,16 +21,19 @@ type IConvectiveOutlookTable interface {
 	SelectLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error)
 }
 
+// Deprecated: use PostgresConvectiveOutlookTableV2
 type PostgresConvectiveOutlookTable struct {
 	db *sql.DB
 }
 
+// Deprecated: use NewPostgresConvectiveOutlookTableV2
 func NewPostgresConvectiveOutlookTable(db *sql.DB) PostgresConvectiveOutlookTable {
 	return PostgresConvectiveOutlookTable{
 		db: db,
 	}
 }
 
+// Deprecated:
 func (p *PostgresConvectiveOutlookTable) Insert(outlook data_structures.ConvectiveOutlook) error {
 	//language=SQL
 	query := `INSERT INTO convectiveOutlookTable (outlookType, outlook) VALUES ($1, $2)`
@@ -46,6 +50,7 @@ func (p *PostgresConvectiveOutlookTable) Insert(outlook data_structures.Convecti
 	return nil
 }
 
+// Deprecated:
 func (p *PostgresConvectiveOutlookTable) Select(publishedTime time.Time, outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
 	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlookType = $1`
 
@@ -68,6 +73,7 @@ func (p *PostgresConvectiveOutlookTable) Select(publishedTime time.Time, outlook
 	return &outlook, nil
 }
 
+// Deprecated:
 func (p *PostgresConvectiveOutlookTable) SelectLatest(outlookType golang.ConvectiveOutlookType) (*data_structures.ConvectiveOutlook, error) {
 	query := `SELECT outlook FROM convectiveOutlookTable WHERE outlooktype = $1 ORDER BY (outlook->'features'->0->'properties'->>'VALID')::timestamptz DESC LIMIT 1`
 

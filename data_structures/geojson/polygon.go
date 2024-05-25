@@ -1,14 +1,17 @@
 package geojson
 
+// Deprecated: use PolygonV2, not using go based location parsing
 type Polygon struct {
 	OuterPath  *MultiPoint   `json:"outerPath"`
 	InnerPaths []*MultiPoint `json:"innerPaths,omitempty"`
 }
 
+// Deprecated:
 func NewPolygonShape(outerPath *MultiPoint, innerPaths []*MultiPoint) *Polygon {
 	return &Polygon{OuterPath: outerPath, InnerPaths: innerPaths}
 }
 
+// Deprecated:
 func (p *Polygon) ContainsPoint(point *Point) bool {
 	return p.containedInOuterPath(point) && !p.containedInInnerPaths(point)
 }
