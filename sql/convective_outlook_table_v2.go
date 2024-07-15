@@ -148,7 +148,17 @@ func (p *PostgresConvectiveOutlookTableV2) SelectAllLatest() (map[golang.Convect
 			outlookType
 	)
 	SELECT
-		c.*
+	    c.id, 
+	    c.outlookType, 
+	    c.geometry::JSONB, 
+	    c.dn, 
+	    c.issued, 
+	    c.expires, 
+	    c.valid, 
+	    c.label, 
+	    c.label2, 
+	    c.stroke, 
+	    c.fill
 	FROM
 		convectiveOutlookV2 c
 	INNER JOIN
@@ -195,7 +205,17 @@ func (p *PostgresConvectiveOutlookTableV2) SelectAllLatestByLocation(point geojs
 			outlookType
 	)
 	SELECT
-		c.*
+		c.id, 
+	    c.outlookType, 
+	    c.geometry::JSONB, 
+	    c.dn, 
+	    c.issued, 
+	    c.expires, 
+	    c.valid, 
+	    c.label, 
+	    c.label2, 
+	    c.stroke, 
+	    c.fill
 	FROM
 		convectiveOutlookV2 c
 	INNER JOIN
