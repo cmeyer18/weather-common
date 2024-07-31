@@ -117,8 +117,8 @@ func (p *PostgresConvectiveOutlookTableV2) SelectLatest(outlookType golang.Conve
 	statement, err := p.db.Prepare(`
 	SELECT id, outlookType, geometry::JSONB, dn, issued, expires, valid, label, label2, stroke, fill 
 	FROM convectiveOutlookV2 
-	WHERE $1 = outlookType AND valid = (
-		SELECT MAX(valid)
+	WHERE $1 = outlookType AND issued = (
+		SELECT MAX(issued)
 		FROM convectiveOutlookV2
 		WHERE $1 = outlookType
 	);`)
