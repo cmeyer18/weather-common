@@ -166,7 +166,7 @@ func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2
 		LEFT JOIN alertV2_UGCCodes ugc ON a.id = ugc.alertId
 	WHERE 
 	    a.geometry IS NULL AND
-		a.ends >= NOW() AND 
+		a.expires >= NOW() AND 
 		ugc.code = ANY($1::VARCHAR[]);`)
 	if err != nil {
 		return nil, err
@@ -192,7 +192,7 @@ func (p *PostgresAlertV2Table) SelectByLocation(codes []string, point geojson_v2
 	FROM alertV2 a
 	WHERE 
 	    ST_Contains(a.geometry, ST_GeomFromText($1, 4326)) AND
-	    a.ends >= NOW()
+	    a.expires >= NOW()
 	`)
 	if err != nil {
 		return nil, err
