@@ -152,12 +152,12 @@ func (p *PostgresLocationTable) Select(locationID string) (*data_structures.Loca
 		location.locationReferenceID,
 		location.zoneCode,
 		location.countyCode,
-		location.lat,
+		location.latitude,
 		location.lng,
 		location.locationName,
 		location.created,
 		locationOptions.option,
-		locationOptions.optiontype
+		locationOptions.optionType
 	FROM location 
 	JOIN locationOptions ON location.locationID = locationOptions.locationID
 	WHERE location.locationID = $1`
@@ -180,8 +180,6 @@ func (p *PostgresLocationTable) Select(locationID string) (*data_structures.Loca
 }
 
 func (p *PostgresLocationTable) SelectByUserID(userID string) ([]data_structures.Location, error) {
-	println("cdm selectByUserUD")
-
 	query := `
 	SELECT 
 		location.locationID,
@@ -189,8 +187,8 @@ func (p *PostgresLocationTable) SelectByUserID(userID string) ([]data_structures
 		location.locationReferenceID,
 		location.zoneCode,
 		location.countyCode,
-		location.lat,
-		location.lng,
+		location.latitude,
+		location.longitude,
 		location.locationName,
 		location.created,
 		locationOptions.option,
@@ -198,8 +196,6 @@ func (p *PostgresLocationTable) SelectByUserID(userID string) ([]data_structures
 	FROM location
 	JOIN locationOptions ON location.locationID = locationOptions.locationID
 	WHERE locationReferenceID = $1 AND locationType = 1`
-
-	println("cdm SelectByUserID " + userID)
 
 	rows, err := p.db.Query(query, userID)
 	if err != nil {
@@ -217,8 +213,8 @@ func (p *PostgresLocationTable) SelectByDeviceID(deviceID string) ([]data_struct
 		location.locationReferenceID,
 		location.zoneCode,
 		location.countyCode,
-		location.lat,
-		location.lng,
+		location.latitude,
+		location.longitude,
 		location.locationName,
 		location.created,
 		locationOptions.option,
@@ -245,8 +241,8 @@ func (p *PostgresLocationTable) SelectByCodes(codes []string) ([]data_structures
 			location.locationReferenceID,
 			location.zoneCode,
 			location.countyCode,
-			location.lat,
-			location.lng,
+			location.latitude,
+			location.longitude,
 			location.locationName,
 			location.created,
 			locationOptions.option,
@@ -280,8 +276,8 @@ func (p *PostgresLocationTable) SelectNotificationsWithConvectiveOutlook() ([]da
 		location.locationReferenceID,
 		location.zoneCode,
 		location.countyCode,
-		location.lat,
-		location.lng,
+		location.latitude,
+		location.longitude,
 		location.locationName,
 		location.created,
 		locationOptions.option,
@@ -290,7 +286,7 @@ func (p *PostgresLocationTable) SelectNotificationsWithConvectiveOutlook() ([]da
 	    SELECT 
 	        locationID
 		FROM locationoptions AS innerLocationOptions
-		WHERE innerLocationOptions.optiontype = 1
+		WHERE innerLocationOptions.optionType = 1
 	) AS mesoscaleLocations
 	JOIN location 
 	    ON mesoscaleLocations.locationID = location.locationID
@@ -320,8 +316,8 @@ func (p *PostgresLocationTable) SelectNotificationsWithMDNotifications() ([]data
 		location.locationReferenceID,
 		location.zoneCode,
 		location.countyCode,
-		location.lat,
-		location.lng,
+		location.latitude,
+		location.longitude,
 		location.locationName,
 		location.created,
 		locationOptions.option,
@@ -330,7 +326,7 @@ func (p *PostgresLocationTable) SelectNotificationsWithMDNotifications() ([]data
 	    SELECT 
 	        locationID
 		FROM locationoptions as innerLocationOptions
-		WHERE innerLocationOptions.optiontype = 2 && innerLocationOptions.option = 'true'
+		WHERE innerLocationOptions.optionType = 2 && innerLocationOptions.option = 'true'
 	) as mesoscaleLocations
 	JOIN location on mesoscaleLocations.locationID = location.locationID
 	JOIN locationOptions ON mesoscaleLocations.locationID = locationOptions.locationID`
@@ -410,8 +406,8 @@ func (p *PostgresLocationTable) scanRows(rows *sql.Rows) ([]data_structures.Loca
 		var locationReferenceID string
 		var zoneCode string
 		var countyCode string
-		var lat float64
-		var lng float64
+		var latitude float64
+		var longitude float64
 		var locationName string
 		var created time.Time
 		var option string
@@ -423,8 +419,8 @@ func (p *PostgresLocationTable) scanRows(rows *sql.Rows) ([]data_structures.Loca
 			&locationReferenceID,
 			&zoneCode,
 			&countyCode,
-			&lat,
-			&lng,
+			&latitude,
+			&longitude,
 			&locationName,
 			&created,
 			&option,
@@ -441,8 +437,8 @@ func (p *PostgresLocationTable) scanRows(rows *sql.Rows) ([]data_structures.Loca
 				LocationReferenceID: locationReferenceID,
 				ZoneCode:            zoneCode,
 				CountyCode:          countyCode,
-				Latitude:            lat,
-				Longitude:           lng,
+				Latitude:            latitude,
+				Longitude:           longitude,
 				LocationName:        locationName,
 				Created:             created,
 			}

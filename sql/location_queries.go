@@ -40,8 +40,8 @@ func (n *PostgresLocationQueries) GetDevicesForAlertID(alertId string) (map[data
 			alertv2_ugccodes au 
 			ON a.id = au.alertid
 		INNER JOIN 
-			locationoptions 
-			ON locationoptions.optiontype = 0 AND a.event = locationoptions.option
+			locationOptions 
+			ON locationOptions.optiontype = 0 AND a.event = locationOptions.option
 		INNER JOIN 
 			location 
 			ON location.locationID = locationOptions.locationID 
@@ -55,7 +55,7 @@ func (n *PostgresLocationQueries) GetDevicesForAlertID(alertId string) (map[data
 		WHERE a.id = $1 
 			AND CASE
 				WHEN (a.geometry IS NOT NULL)
-					THEN ST_Contains(a.geometry, ST_SetSRID(ST_MakePoint(location.lng , location.lat), 4326))
+					THEN ST_Contains(a.geometry, ST_SetSRID(ST_MakePoint(location.longitude , location.latitude), 4326))
 				ELSE
 					au.code = location.zonecode OR au.code = location.countycode
 			END`)
@@ -93,12 +93,12 @@ func (n *PostgresLocationQueries) GetDevicesForConvectiveOutlookID(convectiveOut
 			device.id, 
 			device.userId, 
 			device.apnsToken,
-			location.locationname,
+			location.locationName,
 			convectiveoutlookv2.label
 		FROM convectiveoutlookv2 
 		INNER JOIN 
-			locationoptions 
-			ON locationoptions.optiontype = 1 AND convectiveoutlookv2.outlooktype = locationoptions.option
+			locationOptions 
+			ON locationOptions.optiontype = 1 AND convectiveoutlookv2.outlooktype = locationOptions.option
 		INNER JOIN 
 			location 
 			ON location.locationID = locationOptions.locationID 
@@ -111,7 +111,7 @@ func (n *PostgresLocationQueries) GetDevicesForConvectiveOutlookID(convectiveOut
 			)
 		WHERE
 		    convectiveoutlookv2.id = $1
-		  	AND ST_Contains(convectiveoutlookv2.geometry, ST_SetSRID(ST_MakePoint(location.lng , location.lat), 4326)) 
+		  	AND ST_Contains(convectiveoutlookv2.geometry, ST_SetSRID(ST_MakePoint(location.longitude , location.latitude), 4326)) 
 	`)
 	if err != nil {
 		return nil, err
@@ -158,8 +158,8 @@ func (n *PostgresLocationQueries) GetDevicesForMesoscaleDiscussionID(mesoscaleDi
 			location.locationname
 		FROM mesoscaleDiscussionV2 m  
 		INNER JOIN 
-			locationoptions 
-			ON locationoptions.optiontype = 2 AND locationoptions.option = 'true'
+			locationOptions 
+			ON locationOptions.optiontype = 2 AND locationOptions.option = 'true'
 		INNER JOIN 
 			location 
 			ON location.locationID = locationOptions.locationID 
@@ -170,7 +170,7 @@ func (n *PostgresLocationQueries) GetDevicesForMesoscaleDiscussionID(mesoscaleDi
 			) OR (
 			    location.locationType = 1 AND location.locationReferenceID = device.userid 
 			)
-		WHERE m.id = $1 AND ST_Contains(m.geometry, ST_SetSRID(ST_MakePoint(location.lng , location.lat), 4326)) 
+		WHERE m.id = $1 AND ST_Contains(m.geometry, ST_SetSRID(ST_MakePoint(location.longitude , location.latitude), 4326)) 
 	`)
 	if err != nil {
 		return nil, err

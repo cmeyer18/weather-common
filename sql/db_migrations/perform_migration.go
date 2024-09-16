@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/cmeyer18/weather-common/v5/data_structures"
-	sql2 "github.com/cmeyer18/weather-common/v5/sql"
+	table_sql "github.com/cmeyer18/weather-common/v5/sql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -67,16 +67,14 @@ func main() {
 }
 
 func runMigrationOnUserNotifications(db *sql.DB) {
-	userNotificationTable := sql2.NewPostgresUserNotificationTable(db)
-	locationTable := sql2.NewPostgresLocationTable(db)
+	userNotificationTable := table_sql.NewPostgresUserNotificationTable(db)
+	locationTable := table_sql.NewPostgresLocationTable(db)
 
 	notifications, err := userNotificationTable.SelectAll()
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-
-	println("cdm selectingALL")
 
 	for _, notification := range notifications {
 		location := data_structures.Location{
