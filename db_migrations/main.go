@@ -11,6 +11,8 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/cmeyer18/weather-common/v6/db_migrations/enviornment"
+	_ "github.com/cmeyer18/weather-common/v6/generative/golang"
+	_ "github.com/cmeyer18/weather-common/v6/sql"
 )
 
 func main() {

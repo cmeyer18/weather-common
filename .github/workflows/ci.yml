@@ -4,7 +4,7 @@ on:
   push
       
 jobs:
-  build:
+  bump-version:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.release.outputs.version }}
@@ -19,20 +19,9 @@ jobs:
           bump_version_scheme: patch
           tag_prefix: v
 
-      - name: Checkout
-        uses: actions/checkout@v4.1.6
-
-      - name: Setup golang
-        uses: actions/setup-go@v5.0.2
-        with:
-          go-version: '1.22.0'
-
-      - name: Build weather-common
-        run: go build ./...
-
   build-weather-db-migration:
     runs-on: ubuntu-latest
-    needs: build
+    needs: bump-version
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
