@@ -47,7 +47,7 @@ jobs:
       - name: Create docker tags
         if: github.ref == 'refs/heads/master'
         run: |
-          docker tag git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{github.run_number}} git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{ needs.build.outputs.version }}
+          docker tag git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{github.run_number}} git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{ needs.bump-version.outputs.version }}
           docker tag git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{github.run_number}} git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:latest-release
 
       - name: Push build tag
@@ -56,5 +56,5 @@ jobs:
       - name: Push release tags
         if: github.ref == 'refs/heads/master'
         run: |
-          docker push git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{ needs.build.outputs.version }}
+          docker push git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:${{ needs.bump-version.outputs.version }}
           docker push git.prod.carsonnetworks.net/cdmeyer/weather-db-migrations:latest-release
