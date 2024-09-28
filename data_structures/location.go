@@ -3,7 +3,7 @@ package data_structures
 import (
 	"time"
 
-	"github.com/cmeyer18/weather-common/v5/generative/golang"
+	"github.com/cmeyer18/weather-common/v6/generative/golang"
 )
 
 type Location struct {

@@ -1,0 +1,3 @@
+DROP TABLE userNotification;
+DROP TABLE userNotificationAlertOption;
+DROP TABLE userNotificationConvectiveOutlookOption;
